@@ -1,0 +1,311 @@
+services:
+  # RabbitMQ for Event-Driven Communication
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: jobfair-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: jobfair_user
+      RABBITMQ_DEFAULT_PASS: jobfair_pass
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI
+    networks:
+      - jobfair_network
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Databases
+  postgres-auth:
+    image: postgres:15
+    container_name: postgres-auth
+    environment:
+      POSTGRES_DB: jobfair_auth
+      POSTGRES_USER: jobfair_user
+      POSTGRES_PASSWORD: jobfair_pass
+    ports:
+      - "5433:5432"
+    networks:
+      - jobfair_network
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobfair_user -d jobfair_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-company:
+    image: postgres:15
+    container_name: postgres-company
+    environment:
+      POSTGRES_DB: jobfair_company
+      POSTGRES_USER: jobfair_user
+      POSTGRES_PASSWORD: jobfair_pass
+    ports:
+      - "5434:5432"
+    networks:
+      - jobfair_network
+    volumes:
+      - postgres_company_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobfair_user -d jobfair_company"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-job:
+    image: postgres:15
+    container_name: postgres-job
+    environment:
+      POSTGRES_DB: jobfair_jobs
+      POSTGRES_USER: jobfair_user
+      POSTGRES_PASSWORD: jobfair_pass
+    ports:
+      - "5435:5432"
+    networks:
+      - jobfair_network
+    volumes:
+      - postgres_job_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobfair_user -d jobfair_jobs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-profile:
+    image: postgres:15
+    container_name: postgres-profile
+    environment:
+      POSTGRES_DB: jobfair_profiles
+      POSTGRES_USER: jobfair_user
+      POSTGRES_PASSWORD: jobfair_pass
+    ports:
+      - "5436:5432"
+    networks:
+      - jobfair_network
+    volumes:
+      - postgres_profile_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobfair_user -d jobfair_profiles"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Migration Services
+  auth-migration:
+    image: migrate/migrate:latest
+    container_name: jobfair_auth_migration
+    volumes:
+      - ./jobfair-auth-service/migrations:/migrations
+    command:
+      [
+        "-path", "/migrations",
+        "-database", "postgres://jobfair_user:jobfair_pass@postgres-auth:5432/jobfair_auth?sslmode=disable",
+        "up"
+      ]
+    networks:
+      - jobfair_network
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+    restart: "no"
+
+  company-migration:
+    image: migrate/migrate:latest
+    container_name: jobfair_company_migration
+    volumes:
+      - ./jobfair-company-service/migrations:/migrations
+    command:
+      [
+        "-path", "/migrations",
+        "-database", "postgres://jobfair_user:jobfair_pass@postgres-company:5432/jobfair_company?sslmode=disable",
+        "up"
+      ]
+    networks:
+      - jobfair_network
+    depends_on:
+      postgres-company:
+        condition: service_healthy
+    restart: "no"
+
+  job-migration:
+    image: migrate/migrate:latest
+    container_name: jobfair_job_migration
+    volumes:
+      - ./jobfair-job-service/migrations:/migrations
+    command:
+      [
+        "-path", "/migrations",
+        "-database", "postgres://jobfair_user:jobfair_pass@postgres-job:5432/jobfair_jobs?sslmode=disable",
+        "up"
+      ]
+    networks:
+      - jobfair_network
+    depends_on:
+      postgres-job:
+        condition: service_healthy
+      company-migration:
+        condition: service_completed_successfully
+    restart: "no"
+
+  profile-migration:
+    image: migrate/migrate:latest
+    container_name: jobfair_profile_migration
+    volumes:
+      - ./jobfair-user-profile-service/migrations:/migrations
+    command:
+      [
+        "-path", "/migrations",
+        "-database", "postgres://jobfair_user:jobfair_pass@postgres-profile:5432/jobfair_profiles?sslmode=disable",
+        "up"
+      ]
+    networks:
+      - jobfair_network
+    depends_on:
+      postgres-profile:
+        condition: service_healthy
+    restart: "no"
+
+  # Microservices
+  auth-service:
+    build:
+      context: .
+      dockerfile: jobfair-auth-service/Dockerfile
+    container_name: jobfair-auth-service
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://jobfair_user:jobfair_pass@postgres-auth:5432/jobfair_auth?sslmode=disable
+      JWT_SECRET: your-super-secret-jwt-key-for-development
+      RABBITMQ_URL: amqp://jobfair_user:jobfair_pass@rabbitmq:5672/
+      PORT: 8080
+      GIN_MODE: debug
+    networks:
+      - jobfair_network
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+      auth-migration:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  company-service:
+    build:
+      context: .
+      dockerfile: jobfair-company-service/Dockerfile
+    container_name: jobfair-company-service
+    ports:
+      - "8081:8080"
+    environment:
+      DATABASE_URL: postgres://jobfair_user:jobfair_pass@postgres-company:5432/jobfair_company?sslmode=disable
+      AUTH_SERVICE_URL: http://auth-service:8080
+      RABBITMQ_URL: amqp://jobfair_user:jobfair_pass@rabbitmq:5672/
+      JWT_SECRET: your-super-secret-jwt-key-for-development
+      PORT: 8080
+      GIN_MODE: debug
+    networks:
+      - jobfair_network
+    depends_on:
+      postgres-company:
+        condition: service_healthy
+      company-migration:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  job-service:
+    build:
+      context: .
+      dockerfile: jobfair-job-service/Dockerfile
+    container_name: jobfair-job-service
+    ports:
+      - "8082:8082"
+    environment:
+      DATABASE_URL: postgres://jobfair_user:jobfair_pass@postgres-job:5432/jobfair_jobs?sslmode=disable
+      AUTH_SERVICE_URL: http://auth-service:8080
+      COMPANY_SERVICE_URL: http://company-service:8080
+      RABBITMQ_URL: amqp://jobfair_user:jobfair_pass@rabbitmq:5672/
+      JWT_SECRET: your-super-secret-jwt-key-for-development
+      PORT: 8082
+      GIN_MODE: debug
+    networks:
+      - jobfair_network
+    depends_on:
+      postgres-job:
+        condition: service_healthy
+      job-migration:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      company-service:
+        condition: service_started
+    restart: unless-stopped
+
+  user-profile-service:
+    build:
+      context: .
+      dockerfile: jobfair-user-profile-service/Dockerfile
+    container_name: jobfair-user-profile-service
+    ports:
+      - "8083:8083"
+    environment:
+      DATABASE_URL: postgres://jobfair_user:jobfair_pass@postgres-profile:5432/jobfair_profiles?sslmode=disable
+      AUTH_SERVICE_URL: http://auth-service:8080
+      JWT_SECRET: your-super-secret-jwt-key-for-development
+      PORT: 8083
+      GIN_MODE: debug
+    networks:
+      - jobfair_network
+    volumes:
+      - profile_uploads:/root/uploads
+    depends_on:
+      postgres-profile:
+        condition: service_healthy
+      profile-migration:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_started
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: jobfair-api-gateway/Dockerfile
+    container_name: jobfair-api-gateway
+    ports:
+      - "80:8080"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8080
+      COMPANY_SERVICE_URL: http://company-service:8080
+      JOB_SERVICE_URL: http://job-service:8082
+      PROFILE_SERVICE_URL: http://user-profile-service:8083
+      PORT: 8080
+      GIN_MODE: debug
+    networks:
+      - jobfair_network
+    depends_on:
+      - auth-service
+      - company-service
+      - job-service
+      - user-profile-service
+    restart: unless-stopped
+
+networks:
+  jobfair_network:
+    driver: bridge
+
+volumes:
+  postgres_auth_data:
+  postgres_company_data:
+  postgres_job_data:
+  postgres_profile_data:
+  rabbitmq_data:
+  profile_uploads:

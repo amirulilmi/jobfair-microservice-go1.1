@@ -1,0 +1,1459 @@
+{
+	"info": {
+		"name": "JobFair Microservices API",
+		"description": "Complete API collection for JobFair Microservices (Auth, Company, Job, User Profile Services)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost",
+			"type": "string"
+		},
+		{
+			"key": "auth_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "company_url",
+			"value": "http://localhost:8081",
+			"type": "string"
+		},
+		{
+			"key": "job_url",
+			"value": "http://localhost:8082",
+			"type": "string"
+		},
+		{
+			"key": "profile_url",
+			"value": "http://localhost:8083",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "company_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "job_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "profile_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "work_exp_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "education_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "cert_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "skill_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🔐 Auth Service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{auth_url}}/health",
+							"host": ["{{auth_url}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "1️⃣ Register - Step 1 (Init)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.access_token) {",
+									"        pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+									"        pm.collectionVariables.set('refresh_token', jsonData.data.refresh_token);",
+									"        pm.collectionVariables.set('user_id', jsonData.data.user.id);",
+									"        console.log('Tokens saved!');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"jobseeker@example.com\",\n  \"password\": \"password123\",\n  \"user_type\": \"job_seeker\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/register/init",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "register", "init"]
+						},
+						"description": "Register step 1: Email, password, and user type (job_seeker or company)"
+					}
+				},
+				{
+					"name": "1️⃣ Register - Step 1 (Company)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.access_token) {",
+									"        pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+									"        pm.collectionVariables.set('refresh_token', jsonData.data.refresh_token);",
+									"        pm.collectionVariables.set('user_id', jsonData.data.user.id);",
+									"        console.log('Tokens saved!');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"company@example.com\",\n  \"password\": \"password123\",\n  \"user_type\": \"company\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/register/init",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "register", "init"]
+						}
+					}
+				},
+				{
+					"name": "2️⃣ Register - Complete Profile (Job Seeker)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"John Doe\",\n  \"phone\": \"081234567890\",\n  \"date_of_birth\": \"1995-05-15\",\n  \"gender\": \"male\",\n  \"location\": \"Jakarta, Indonesia\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/register/profile",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "register", "profile"]
+						},
+						"description": "Complete basic profile for job seeker"
+					}
+				},
+				{
+					"name": "2️⃣ Register - Complete Profile (Company)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_name\": \"Tech Startup Indonesia\",\n  \"phone\": \"021-12345678\",\n  \"website\": \"https://techstartup.id\",\n  \"industry\": [\"Technology\", \"Software Development\"],\n  \"address\": \"Jl. Sudirman No. 123, Jakarta\",\n  \"contact_name\": \"Jane Smith\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/register/profile",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "register", "profile"]
+						},
+						"description": "Complete basic profile for company"
+					}
+				},
+				{
+					"name": "3️⃣ Register - Send OTP",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{auth_url}}/api/v1/register/send-otp",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "register", "send-otp"]
+						},
+						"description": "Send OTP to registered phone number"
+					}
+				},
+				{
+					"name": "4️⃣ Register - Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"081234567890\",\n  \"otp_code\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/register/verify-otp",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "register", "verify-otp"]
+						},
+						"description": "Verify OTP code"
+					}
+				},
+				{
+					"name": "5️⃣ Register - Set Employment Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"employment_status\": \"actively_looking\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/register/employment",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "register", "employment"]
+						},
+						"description": "Set employment status (job seeker only)"
+					}
+				},
+				{
+					"name": "6️⃣ Register - Set Job Preferences",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"preferred_job_types\": [\"full_time\", \"remote\"],\n  \"preferred_locations\": [\"Jakarta\", \"Bandung\"],\n  \"expected_salary_min\": 8000000,\n  \"expected_salary_max\": 15000000\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/register/preferences",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "register", "preferences"]
+						},
+						"description": "Set job preferences (job seeker only)"
+					}
+				},
+				{
+					"name": "7️⃣ Register - Upload Profile Photo",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "photo",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/register/photo",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "register", "photo"]
+						},
+						"description": "Upload profile photo or company logo"
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.access_token) {",
+									"        pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+									"        pm.collectionVariables.set('refresh_token', jsonData.data.refresh_token);",
+									"        pm.collectionVariables.set('user_id', jsonData.data.user.id);",
+									"        console.log('Login successful! Tokens saved.');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"jobseeker@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/login",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "login"]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.access_token) {",
+									"        pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+									"        console.log('Token refreshed!');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/refresh",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "refresh"]
+						}
+					}
+				},
+				{
+					"name": "Get All Users (Debug)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{auth_url}}/api/v1/register/users",
+							"host": ["{{auth_url}}"],
+							"path": ["api", "v1", "register", "users"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🏢 Company Service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{company_url}}/health",
+							"host": ["{{company_url}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "List Companies (Public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{company_url}}/api/v1/companies?page=1&limit=10",
+							"host": ["{{company_url}}"],
+							"path": ["api", "v1", "companies"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Company by ID (Public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{company_url}}/api/v1/companies/{{company_id}}",
+							"host": ["{{company_url}}"],
+							"path": ["api", "v1", "companies", "{{company_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Get My Company",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{company_url}}/api/v1/my-company",
+							"host": ["{{company_url}}"],
+							"path": ["api", "v1", "my-company"]
+						}
+					}
+				},
+				{
+					"name": "Create Company",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.collectionVariables.set('company_id', jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+						},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Tech Solutions Inc\",\n  \"description\": \"Leading technology solutions provider\",\n  \"industry\": [\"Technology\", \"Software\"],\n  \"company_size\": \"51-200\",\n  \"founded_year\": 2015,\n  \"website\": \"https://techsolutions.com\",\n  \"email\": \"contact@techsolutions.com\",\n  \"phone\": \"021-12345678\",\n  \"address\": \"Jl. Sudirman No. 123\",\n  \"city\": \"Jakarta\",\n  \"country\": \"Indonesia\"\n}"
+						},
+						"url": {
+							"raw": "{{company_url}}/api/v1/companies",
+							"host": ["{{company_url}}"],
+							"path": ["api", "v1", "companies"]
+						}
+					}
+				},
+				{
+					"name": "Update Company",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+						},
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"Updated description\",\n  \"company_size\": \"201-500\"\n}"
+						},
+						"url": {
+							"raw": "{{company_url}}/api/v1/companies/{{company_id}}",
+							"host": ["{{company_url}}"],
+							"path": ["api", "v1", "companies", "{{company_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Upload Company Logo",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+						},
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [{"key": "logo", "type": "file", "src": []}]
+						},
+						"url": {
+							"raw": "{{company_url}}/api/v1/companies/{{company_id}}/logo",
+							"host": ["{{company_url}}"],
+							"path": ["api", "v1", "companies", "{{company_id}}", "logo"]
+						}
+					}
+				},
+				{
+					"name": "Get Company Analytics",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+						},
+						"method": "GET",
+						"url": {
+							"raw": "{{company_url}}/api/v1/companies/{{company_id}}/analytics",
+							"host": ["{{company_url}}"],
+							"path": ["api", "v1", "companies", "{{company_id}}", "analytics"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "💼 Job Service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{job_url}}/health",
+							"host": ["{{job_url}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "List Jobs (Public)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{job_url}}/api/v1/jobs?page=1&limit=10",
+							"host": ["{{job_url}}"],
+							"path": ["api", "v1", "jobs"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Job by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{job_url}}/api/v1/jobs/{{job_id}}",
+							"host": ["{{job_url}}"],
+							"path": ["api", "v1", "jobs", "{{job_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Create Job",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.collectionVariables.set('job_id', jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+						},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Senior Software Engineer\",\n  \"description\": \"We are looking for an experienced Software Engineer...\",\n  \"employment_type\": \"fulltime\",\n  \"work_type\": \"hybrid\",\n  \"experience_level\": \"senior\",\n  \"location\": \"Jakarta\",\n  \"city\": \"Jakarta\",\n  \"country\": \"Indonesia\",\n  \"salary_min\": 15000000,\n  \"salary_max\": 25000000,\n  \"skills\": [\"Go\", \"PostgreSQL\", \"Docker\"]\n}"
+						},
+						"url": {
+							"raw": "{{job_url}}/api/v1/jobs",
+							"host": ["{{job_url}}"],
+							"path": ["api", "v1", "jobs"]
+						}
+					}
+				},
+				{
+					"name": "Publish Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+						},
+						"method": "POST",
+						"url": {
+							"raw": "{{job_url}}/api/v1/jobs/{{job_id}}/publish",
+							"host": ["{{job_url}}"],
+							"path": ["api", "v1", "jobs", "{{job_id}}", "publish"]
+						}
+					}
+				},
+				{
+					"name": "Apply to Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+						},
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{"key": "cv", "type": "file", "src": []},
+								{"key": "cover_letter", "value": "I am interested...", "type": "text"}
+							]
+						},
+						"url": {
+							"raw": "{{job_url}}/api/v1/jobs/{{job_id}}/apply",
+							"host": ["{{job_url}}"],
+							"path": ["api", "v1", "jobs", "{{job_id}}", "apply"]
+						}
+					}
+				},
+				{
+					"name": "Get My Applications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+						},
+						"method": "GET",
+						"url": {
+							"raw": "{{job_url}}/api/v1/applications/my",
+							"host": ["{{job_url}}"],
+							"path": ["api", "v1", "applications", "my"]
+						}
+					}
+				},
+				{
+					"name": "Save Job (Bookmark)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+						},
+						"method": "POST",
+						"url": {
+							"raw": "{{job_url}}/api/v1/jobs/{{job_id}}/save",
+							"host": ["{{job_url}}"],
+							"path": ["api", "v1", "jobs", "{{job_id}}", "save"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "👤 User Profile Service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{profile_url}}/health",
+							"host": ["{{profile_url}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "📄 Profile",
+					"item": [
+						{
+							"name": "Create Profile",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.data && jsonData.data.id) {",
+											"        pm.collectionVariables.set('profile_id', jsonData.data.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"John Doe\",\n  \"headline\": \"Full Stack Developer\",\n  \"summary\": \"Experienced developer with 5+ years in web development\",\n  \"location\": \"Jakarta, Indonesia\",\n  \"phone\": \"081234567890\",\n  \"linkedin_url\": \"https://linkedin.com/in/johndoe\",\n  \"github_url\": \"https://github.com/johndoe\",\n  \"portfolio_url\": \"https://johndoe.dev\"\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/profiles",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "profiles"]
+								}
+							}
+						},
+						{
+							"name": "Get Profile",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/profiles",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "profiles"]
+								}
+							}
+						},
+						{
+							"name": "Get Profile with All Relations",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/profiles/full",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "profiles", "full"]
+								},
+								"description": "Get complete profile with work experience, education, certifications, skills, preferences"
+							}
+						},
+						{
+							"name": "Update Profile",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "PUT",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"headline\": \"Senior Full Stack Developer\",\n  \"summary\": \"Updated summary with more experience\",\n  \"location\": \"Bandung, Indonesia\"\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/profiles",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "profiles"]
+								}
+							}
+						},
+						{
+							"name": "Get Profile Completion Status",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/profiles/completion",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "profiles", "completion"]
+								},
+								"description": "Check profile completion percentage and missing sections"
+							}
+						}
+					]
+				},
+				{
+					"name": "💼 Work Experience",
+					"item": [
+						{
+							"name": "Add Work Experience",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.data && jsonData.data.id) {",
+											"        pm.collectionVariables.set('work_exp_id', jsonData.data.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"company_name\": \"Tech Corp Indonesia\",\n  \"position\": \"Senior Software Engineer\",\n  \"employment_type\": \"full_time\",\n  \"location\": \"Jakarta, Indonesia\",\n  \"is_current\": true,\n  \"start_date\": \"2022-01-15\",\n  \"description\": \"Led team of 5 developers, built microservices architecture\"\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/work-experiences",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "work-experiences"]
+								}
+							}
+						},
+						{
+							"name": "Get All Work Experiences",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/work-experiences",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "work-experiences"]
+								}
+							}
+						},
+						{
+							"name": "Get Work Experience by ID",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/work-experiences/{{work_exp_id}}",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "work-experiences", "{{work_exp_id}}"]
+								}
+							}
+						},
+						{
+							"name": "Update Work Experience",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "PUT",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"position\": \"Lead Software Engineer\",\n  \"description\": \"Updated description with more achievements\"\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/work-experiences/{{work_exp_id}}",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "work-experiences", "{{work_exp_id}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Work Experience",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "DELETE",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/work-experiences/{{work_exp_id}}",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "work-experiences", "{{work_exp_id}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "🎓 Education",
+					"item": [
+						{
+							"name": "Add Education",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.data && jsonData.data.id) {",
+											"        pm.collectionVariables.set('education_id', jsonData.data.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"institution_name\": \"University of Indonesia\",\n  \"degree\": \"Bachelor\",\n  \"field_of_study\": \"Computer Science\",\n  \"start_date\": \"2015-08-01\",\n  \"end_date\": \"2019-06-30\",\n  \"grade\": \"3.75\",\n  \"description\": \"Focus on Software Engineering and AI\"\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/educations",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "educations"]
+								}
+							}
+						},
+						{
+							"name": "Get All Educations",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/educations",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "educations"]
+								}
+							}
+						},
+						{
+							"name": "Update Education",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "PUT",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"grade\": \"3.80\",\n  \"description\": \"Updated description\"\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/educations/{{education_id}}",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "educations", "{{education_id}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Education",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "DELETE",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/educations/{{education_id}}",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "educations", "{{education_id}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "🏆 Certifications",
+					"item": [
+						{
+							"name": "Add Certification",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.data && jsonData.data.id) {",
+											"        pm.collectionVariables.set('cert_id', jsonData.data.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"AWS Solutions Architect Associate\",\n  \"issuing_organization\": \"Amazon Web Services\",\n  \"issue_date\": \"2023-06-15\",\n  \"expiry_date\": \"2026-06-15\",\n  \"credential_id\": \"AWS-SAA-123456\",\n  \"credential_url\": \"https://aws.amazon.com/verification/123456\"\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/certifications",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "certifications"]
+								}
+							}
+						},
+						{
+							"name": "Get All Certifications",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/certifications",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "certifications"]
+								}
+							}
+						},
+						{
+							"name": "Update Certification",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "PUT",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"AWS Solutions Architect Professional\"\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/certifications/{{cert_id}}",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "certifications", "{{cert_id}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Certification",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "DELETE",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/certifications/{{cert_id}}",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "certifications", "{{cert_id}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "🔧 Skills",
+					"item": [
+						{
+							"name": "Add Single Skill",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.data && jsonData.data.id) {",
+											"        pm.collectionVariables.set('skill_id', jsonData.data.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Go Programming\",\n  \"proficiency_level\": \"expert\",\n  \"years_of_experience\": 5\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/skills",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "skills"]
+								}
+							}
+						},
+						{
+							"name": "Add Multiple Skills (Bulk)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"skills\": [\n    {\n      \"name\": \"PostgreSQL\",\n      \"proficiency_level\": \"advanced\",\n      \"years_of_experience\": 4\n    },\n    {\n      \"name\": \"Docker\",\n      \"proficiency_level\": \"intermediate\",\n      \"years_of_experience\": 3\n    },\n    {\n      \"name\": \"Kubernetes\",\n      \"proficiency_level\": \"intermediate\",\n      \"years_of_experience\": 2\n    }\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/skills/bulk",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "skills", "bulk"]
+								}
+							}
+						},
+						{
+							"name": "Get All Skills",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/skills",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "skills"]
+								}
+							}
+						},
+						{
+							"name": "Update Skill",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "PUT",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"proficiency_level\": \"expert\",\n  \"years_of_experience\": 6\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/skills/{{skill_id}}",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "skills", "{{skill_id}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Skill",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "DELETE",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/skills/{{skill_id}}",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "skills", "{{skill_id}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "⚙️ Career Preferences",
+					"item": [
+						{
+							"name": "Create/Update Career Preference",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"job_type\": \"full_time\",\n  \"work_location\": \"hybrid\",\n  \"expected_salary_min\": 15000000,\n  \"expected_salary_max\": 25000000,\n  \"currency\": \"IDR\",\n  \"willing_to_relocate\": true,\n  \"available_from\": \"2025-11-01\"\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/career-preference",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "career-preference"]
+								},
+								"description": "Create or update career preferences (upsert)"
+							}
+						},
+						{
+							"name": "Get Career Preference",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/career-preference",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "career-preference"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "🎯 Position Preferences",
+					"item": [
+						{
+							"name": "Create Position Preferences",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"positions\": [\n    \"Software Engineer\",\n    \"Backend Developer\",\n    \"Full Stack Developer\"\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/position-preferences",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "position-preferences"]
+								},
+								"description": "Add desired job positions"
+							}
+						},
+						{
+							"name": "Get Position Preferences",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/position-preferences",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "position-preferences"]
+								}
+							}
+						},
+						{
+							"name": "Delete Position Preference",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "DELETE",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/position-preferences/1",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "position-preferences", "1"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "📄 CV Management",
+					"item": [
+						{
+							"name": "Upload CV",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "cv",
+											"type": "file",
+											"src": [],
+											"description": "PDF file (max 5MB)"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{profile_url}}/api/v1/cv",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "cv"]
+								},
+								"description": "Upload CV document (PDF only, max 5MB)"
+							}
+						},
+						{
+							"name": "Get CV",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/cv",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "cv"]
+								},
+								"description": "Get CV document information"
+							}
+						},
+						{
+							"name": "Delete CV",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "DELETE",
+								"url": {
+									"raw": "{{profile_url}}/api/v1/cv",
+									"host": ["{{profile_url}}"],
+									"path": ["api", "v1", "cv"]
+								}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

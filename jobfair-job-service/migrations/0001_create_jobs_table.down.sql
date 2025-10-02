@@ -1,0 +1,18 @@
+DROP TRIGGER IF EXISTS update_jobs_updated_at ON jobs;
+DROP FUNCTION IF EXISTS update_updated_at_column();
+DROP INDEX IF EXISTS idx_jobs_description_fulltext;
+DROP INDEX IF EXISTS idx_jobs_title_fulltext;
+DROP INDEX IF EXISTS idx_jobs_tags;
+DROP INDEX IF EXISTS idx_jobs_skills;
+DROP INDEX IF EXISTS idx_jobs_created_at;
+DROP INDEX IF EXISTS idx_jobs_deleted_at;
+DROP INDEX IF EXISTS idx_jobs_city;
+DROP INDEX IF EXISTS idx_jobs_location;
+DROP INDEX IF EXISTS idx_jobs_experience_level;
+DROP INDEX IF EXISTS idx_jobs_work_type;
+DROP INDEX IF EXISTS idx_jobs_employment_type;
+DROP INDEX IF EXISTS idx_jobs_status;
+DROP INDEX IF EXISTS idx_jobs_title;
+DROP INDEX IF EXISTS idx_jobs_user_id;
+DROP INDEX IF EXISTS idx_jobs_company_id;
+DROP TABLE IF EXISTS jobs;

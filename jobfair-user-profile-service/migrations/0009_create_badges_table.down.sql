@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS profile_badges;
+DROP TABLE IF EXISTS badges;

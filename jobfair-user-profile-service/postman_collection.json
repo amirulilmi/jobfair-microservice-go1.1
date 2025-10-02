@@ -1,0 +1,790 @@
+{
+	"info": {
+		"_postman_id": "jobfair-user-profile-collection",
+		"name": "JobFair - User Profile Service",
+		"description": "Complete API collection for JobFair User Profile Service. This collection tests all endpoints including Profile, Work Experience, Education, Certifications, Skills, Preferences, and CV Upload.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "0. Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						},
+						"description": "Check if service is running. No authentication required."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1. Profile Management",
+			"item": [
+				{
+					"name": "Create Profile",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"John Doe\",\n  \"phone_number\": \"081234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/profiles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "profiles"]
+						},
+						"description": "Create a new profile for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/profiles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "profiles"]
+						},
+						"description": "Get basic profile information for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Complete Profile (with relations)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/profiles/full",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "profiles", "full"]
+						},
+						"description": "Get complete profile with all relations (work experience, education, skills, etc.)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bio\": \"Experienced Mining Engineer with 5+ years in the industry\",\n  \"city\": \"Jakarta\",\n  \"province\": \"DKI Jakarta\",\n  \"country\": \"Indonesia\",\n  \"date_of_birth\": \"1995-05-15T00:00:00Z\",\n  \"gender\": \"male\",\n  \"linkedin_url\": \"https://linkedin.com/in/johndoe\",\n  \"portfolio_url\": \"https://johndoe.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/profiles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "profiles"]
+						},
+						"description": "Update profile information. All fields are optional."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile Completion Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/profiles/completion",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "profiles", "completion"]
+						},
+						"description": "Get profile completion percentage (0-100%) based on 15 criteria."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Work Experience",
+			"item": [
+				{
+					"name": "Create Work Experience",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_name\": \"PT Bumi Mineral Sejahtera\",\n  \"job_position\": \"Senior Mining Engineer\",\n  \"start_date\": \"2020-01-15T00:00:00Z\",\n  \"end_date\": \"2024-07-31T00:00:00Z\",\n  \"is_current_job\": false,\n  \"job_description\": \"Led a team of 15 engineers in planning and supervising open-pit mining operations. Implemented safety protocols reducing workplace incidents by 30%. Optimized drilling operations resulting in 12% cost efficiency.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-experiences",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "work-experiences"]
+						},
+						"description": "Add a work experience entry to profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Work Experiences",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-experiences",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "work-experiences"]
+						},
+						"description": "Get all work experiences for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Work Experience by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-experiences/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "work-experiences", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{work_exp_id}}"
+								}
+							]
+						},
+						"description": "Get a specific work experience by ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Work Experience",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_name\": \"PT Bumi Mineral Sejahtera\",\n  \"job_position\": \"Lead Mining Engineer\",\n  \"start_date\": \"2020-01-15T00:00:00Z\",\n  \"is_current_job\": true,\n  \"job_description\": \"Updated description of responsibilities...\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-experiences/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "work-experiences", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{work_exp_id}}"
+								}
+							]
+						},
+						"description": "Update a work experience entry."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Work Experience",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-experiences/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "work-experiences", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{work_exp_id}}"
+								}
+							]
+						},
+						"description": "Delete a work experience entry."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Education",
+			"item": [
+				{
+					"name": "Create Education",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"university\": \"Institut Teknologi Bandung\",\n  \"major\": \"Teknik Pertambangan\",\n  \"degree\": \"Bachelor\",\n  \"start_date\": \"2014-08-01T00:00:00Z\",\n  \"end_date\": \"2018-07-31T00:00:00Z\",\n  \"is_current\": false,\n  \"gpa\": 3.98,\n  \"description\": \"Mining Engineering program with focus on sustainable mining practices.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/educations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "educations"]
+						},
+						"description": "Add an education entry to profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Educations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/educations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "educations"]
+						},
+						"description": "Get all education entries for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Education by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/educations/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "educations", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{education_id}}"
+								}
+							]
+						},
+						"description": "Get a specific education entry by ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Education",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"university\": \"Institut Teknologi Bandung\",\n  \"major\": \"Teknik Pertambangan\",\n  \"degree\": \"Bachelor\",\n  \"start_date\": \"2014-08-01T00:00:00Z\",\n  \"end_date\": \"2018-07-31T00:00:00Z\",\n  \"gpa\": 3.98\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/educations/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "educations", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{education_id}}"
+								}
+							]
+						},
+						"description": "Update an education entry."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Education",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/educations/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "educations", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{education_id}}"
+								}
+							]
+						},
+						"description": "Delete an education entry."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Certifications",
+			"item": [
+				{
+					"name": "Create Certification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"certification_name\": \"Certified Mine Manager (CMM)\",\n  \"organizer\": \"Ministry of Energy and Mineral Resources, Indonesia\",\n  \"issue_date\": \"2022-03-15T00:00:00Z\",\n  \"expiry_date\": \"2027-03-15T00:00:00Z\",\n  \"credential_id\": \"CMM-2022-12345\",\n  \"credential_url\": \"https://example.com/verify/CMM-2022-12345\",\n  \"description\": \"Professional certification for mine management and operations.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/certifications",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "certifications"]
+						},
+						"description": "Add a certification to profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Certifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/certifications",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "certifications"]
+						},
+						"description": "Get all certifications for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Certification by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/certifications/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "certifications", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{cert_id}}"
+								}
+							]
+						},
+						"description": "Get a specific certification by ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Certification",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"certification_name\": \"Certified Mine Manager (CMM)\",\n  \"organizer\": \"Ministry of Energy and Mineral Resources\",\n  \"issue_date\": \"2022-03-15T00:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/certifications/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "certifications", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{cert_id}}"
+								}
+							]
+						},
+						"description": "Update a certification entry."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Certification",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/certifications/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "certifications", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{cert_id}}"
+								}
+							]
+						},
+						"description": "Delete a certification entry."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Skills",
+			"item": [
+				{
+					"name": "Create Single Skill",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"skill_name\": \"Mine Planning & Design\",\n  \"skill_type\": \"technical\",\n  \"proficiency_level\": \"expert\",\n  \"years_of_experience\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/skills",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "skills"]
+						},
+						"description": "Add a single skill to profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Multiple Skills (Bulk)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"technical_skills\": [\n    {\n      \"skill_name\": \"Mine Planning & Design\",\n      \"skill_type\": \"technical\",\n      \"proficiency_level\": \"expert\",\n      \"years_of_experience\": 5\n    },\n    {\n      \"skill_name\": \"Drilling & Blasting Techniques\",\n      \"skill_type\": \"technical\",\n      \"proficiency_level\": \"advanced\",\n      \"years_of_experience\": 4\n    },\n    {\n      \"skill_name\": \"Geotechnical Analysis\",\n      \"skill_type\": \"technical\",\n      \"proficiency_level\": \"advanced\",\n      \"years_of_experience\": 3\n    },\n    {\n      \"skill_name\": \"Mining Software (Surpac, Vulcan)\",\n      \"skill_type\": \"technical\",\n      \"proficiency_level\": \"expert\",\n      \"years_of_experience\": 5\n    }\n  ],\n  \"soft_skills\": [\n    {\n      \"skill_name\": \"Leadership & Team Management\",\n      \"skill_type\": \"soft\",\n      \"proficiency_level\": \"advanced\"\n    },\n    {\n      \"skill_name\": \"Problem Solving\",\n      \"skill_type\": \"soft\",\n      \"proficiency_level\": \"expert\"\n    },\n    {\n      \"skill_name\": \"Risk Assessment\",\n      \"skill_type\": \"soft\",\n      \"proficiency_level\": \"advanced\"\n    },\n    {\n      \"skill_name\": \"Communication\",\n      \"skill_type\": \"soft\",\n      \"proficiency_level\": \"advanced\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/skills/bulk",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "skills", "bulk"]
+						},
+						"description": "Add multiple skills at once (both technical and soft skills)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Skills",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/skills",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "skills"]
+						},
+						"description": "Get all skills for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Skill by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/skills/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "skills", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{skill_id}}"
+								}
+							]
+						},
+						"description": "Get a specific skill by ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Skill",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"skill_name\": \"Mine Planning & Design\",\n  \"skill_type\": \"technical\",\n  \"proficiency_level\": \"expert\",\n  \"years_of_experience\": 6\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/skills/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "skills", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{skill_id}}"
+								}
+							]
+						},
+						"description": "Update a skill entry."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Skill",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/skills/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "skills", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{skill_id}}"
+								}
+							]
+						},
+						"description": "Delete a skill entry."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Career Preference",
+			"item": [
+				{
+					"name": "Create/Update Career Preference",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"is_actively_looking\": true,\n  \"expected_salary_min\": 15000000,\n  \"expected_salary_max\": 25000000,\n  \"salary_currency\": \"IDR\",\n  \"is_negotiable\": true,\n  \"preferred_work_types\": [\"onsite\", \"hybrid\"],\n  \"preferred_locations\": [\"Jakarta\", \"Bandung\"],\n  \"willing_to_relocate\": false,\n  \"available_start_date\": \"2025-11-01T00:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/career-preference",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "career-preference"]
+						},
+						"description": "Create or update career preference. Only one career preference per profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Career Preference",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/career-preference",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "career-preference"]
+						},
+						"description": "Get career preference for the authenticated user."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "7. Position Preferences",
+			"item": [
+				{
+					"name": "Create Position Preferences (Bulk)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"positions\": [\n    {\n      \"position_name\": \"Senior Mining Engineer\",\n      \"priority\": 1\n    },\n    {\n      \"position_name\": \"Mine Operations Manager\",\n      \"priority\": 2\n    },\n    {\n      \"position_name\": \"Health & Safety Supervisor\",\n      \"priority\": 3\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/position-preferences",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "position-preferences"]
+						},
+						"description": "Create multiple position preferences. Replaces existing preferences."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Position Preferences",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/position-preferences",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "position-preferences"]
+						},
+						"description": "Get all position preferences for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Position Preference",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/position-preferences/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "position-preferences", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{position_pref_id}}"
+								}
+							]
+						},
+						"description": "Delete a specific position preference."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "8. CV Upload",
+			"item": [
+				{
+					"name": "Upload CV",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/YourName/Documents/CV_JohnDoe.pdf",
+									"description": "Select your CV file (PDF, DOC, or DOCX, max 5MB)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/cv",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "cv"]
+						},
+						"description": "Upload CV document. Accepts PDF, DOC, DOCX. Maximum file size: 5MB. Replaces existing CV if present."
+					},
+					"response": []
+				},
+				{
+					"name": "Get CV Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/cv",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "cv"]
+						},
+						"description": "Get CV information (filename, URL, size, upload date, etc.)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete CV",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/cv",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "cv"]
+						},
+						"description": "Delete CV document from profile."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "9. Badges",
+			"item": [
+				{
+					"name": "Get User Badges",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/badges",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "badges"]
+						},
+						"description": "Get all badges earned by the user."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8083",
+			"type": "string"
+		}
+	]
+}

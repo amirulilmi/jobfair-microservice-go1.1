@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for User Profile Service
+  user-profile-db:
+    image: postgres:14-alpine
+    container_name: jobfair-user-profile-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jobfair_user_profile
+    ports:
+      - "5435:5432"  # Different port to avoid conflict
+    volumes:
+      - user-profile-data:/var/lib/postgresql/data
+    networks:
+      - jobfair-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # User Profile Service
+  user-profile-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobfair-user-profile-service
+    environment:
+      PORT: 8083
+      SERVICE_NAME: user-profile-service
+      DATABASE_URL: postgres://postgres:postgres@user-profile-db:5432/jobfair_user_profile?sslmode=disable
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production-12345
+      MAX_FILE_SIZE: 5242880
+      ALLOWED_FILE_TYPES: .pdf,.doc,.docx
+      UPLOAD_DIR: ./uploads/cv
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./uploads:/root/uploads
+    depends_on:
+      user-profile-db:
+        condition: service_healthy
+    networks:
+      - jobfair-network
+
+volumes:
+  user-profile-data:
+
+networks:
+  jobfair-network:
+    external: true  # Assuming you have a shared network for all services
