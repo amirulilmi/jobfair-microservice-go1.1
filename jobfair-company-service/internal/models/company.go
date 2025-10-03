@@ -10,11 +10,14 @@ import (
 type CompanySize string
 type SubscriptionTier string
 
-// Company Size sesuai dengan UI
+// Company Size sesuai dengan database constraint
 const (
-	CompanySizeSmall  CompanySize = "small"  // 1-50 employees
-	CompanySizeMedium CompanySize = "medium" // 51-250 employees
-	CompanySizeLarge  CompanySize = "large"  // 251+ employees
+	CompanySize1to10     CompanySize = "1-10"
+	CompanySize11to50    CompanySize = "11-50"
+	CompanySize51to200   CompanySize = "51-200"
+	CompanySize201to500  CompanySize = "201-500"
+	CompanySize501to1000 CompanySize = "501-1000"
+	CompanySize1000Plus  CompanySize = "1000+"
 )
 
 const (

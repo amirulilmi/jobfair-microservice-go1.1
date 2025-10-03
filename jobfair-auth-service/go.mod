@@ -1,18 +1,18 @@
 module jobfair-auth-service
 
-go 1.25.0
-
-replace jobfair-shared-libs/go => ../jobfair-shared-libs/go
+go 1.25
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/golang-jwt/jwt/v5 v5.0.0
+	github.com/golang-jwt/jwt/v5 v5.2.0
+	github.com/jobfair/shared v0.0.0
 	github.com/lib/pq v1.10.9
-	golang.org/x/crypto v0.13.0
-	gorm.io/driver/postgres v1.5.2
-	gorm.io/gorm v1.25.4
-	jobfair-shared-libs/go v0.0.0-00010101000000-000000000000
+	golang.org/x/crypto v0.28.0
+	gorm.io/driver/postgres v1.5.4
+	gorm.io/gorm v1.25.5
 )
+
+replace github.com/jobfair/shared => ../jobfair-shared-libs/go
 
 require (
 	github.com/bytedance/sonic v1.9.1 // indirect
@@ -23,10 +23,11 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.14.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgx/v5 v5.3.1 // indirect
+	github.com/jackc/pgx/v5 v5.4.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -42,11 +43,9 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/text v0.19.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace jobfair-microservice/auth-service => ../jobfair-auth-service

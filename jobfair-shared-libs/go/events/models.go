@@ -8,6 +8,7 @@ const (
 	EventTypeCompanyRegistered = "company.registered"
 	EventTypeCompanyUpdated    = "company.updated"
 	EventTypeCompanyDeleted    = "company.deleted"
+	EventTypeUserRegistered    = "user.registered"
 )
 
 // BaseEvent contains common fields for all events
@@ -26,6 +27,7 @@ type CompanyRegisteredEvent struct {
 
 type CompanyRegisteredData struct {
 	UserID      uint     `json:"user_id"`
+	CompanyID   uint     `json:"company_id"`   // Added company_id for job-service mapping
 	CompanyName string   `json:"company_name"`
 	Email       string   `json:"email"`
 	Phone       string   `json:"phone"`
@@ -44,7 +46,7 @@ type CompanyUpdatedEvent struct {
 }
 
 type CompanyUpdatedData struct {
-	UserID      uint              `json:"user_id"`
+	UserID        uint                   `json:"user_id"`
 	UpdatedFields map[string]interface{} `json:"updated_fields"`
 }
 
@@ -56,4 +58,19 @@ type CompanyDeletedEvent struct {
 
 type CompanyDeletedData struct {
 	UserID uint `json:"user_id"`
+}
+
+// UserRegisteredEvent is published when a user completes registration
+type UserRegisteredEvent struct {
+	BaseEvent
+	Data UserRegisteredData `json:"data"`
+}
+
+type UserRegisteredData struct {
+	UserID           uint   `json:"user_id"`
+	Email            string `json:"email"`
+	FullName         string `json:"full_name"`
+	PhoneNumber      string `json:"phone_number"`
+	Role             string `json:"role"`
+	ProfilePhotoURL  string `json:"profile_photo_url"`
 }

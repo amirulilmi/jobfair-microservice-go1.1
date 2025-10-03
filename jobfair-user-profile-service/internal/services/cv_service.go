@@ -35,9 +35,10 @@ func NewCVService(repo repository.CVRepository, profileService ProfileService, c
 }
 
 func (s *cvService) Upload(userID uint, file *multipart.FileHeader) (*models.CVDocument, error) {
-	profile, err := s.profileService.GetProfile(userID)
+	// Get or auto-create profile if not exists
+	profile, err := s.profileService.GetOrCreateProfile(userID)
 	if err != nil {
-		return nil, errors.New("profile not found")
+		return nil, errors.New("failed to get or create profile: " + err.Error())
 	}
 
 	// Validate file size

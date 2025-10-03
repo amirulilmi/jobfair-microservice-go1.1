@@ -20,12 +20,12 @@ type Education struct {
 }
 
 type EducationRequest struct {
-	University  string     `json:"university" binding:"required"`
-	Major       string     `json:"major" binding:"required"`
-	Degree      string     `json:"degree"`
-	StartDate   time.Time  `json:"start_date" binding:"required"`
-	EndDate     *time.Time `json:"end_date"`
-	IsCurrent   bool       `json:"is_current"`
-	GPA         *float64   `json:"gpa"`
-	Description string     `json:"description"`
+	University  string    `json:"university" binding:"required"`
+	Major       string    `json:"major" binding:"required"`
+	Degree      string    `json:"degree"`
+	StartDate   *DateOnly `json:"start_date" binding:"required"`
+	EndDate     *DateOnly `json:"end_date"`
+	IsCurrent   bool      `json:"is_current"`
+	GPA         *float64  `json:"gpa"`
+	Description string    `json:"description"`
 }

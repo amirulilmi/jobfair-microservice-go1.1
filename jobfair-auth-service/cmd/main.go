@@ -12,7 +12,7 @@ import (
 	"jobfair-auth-service/internal/services"
 	"jobfair-auth-service/pkg/database"
 
-	"jobfair-shared-libs/go/events" // Import shared events library
+	"github.com/jobfair/shared/events" // Import shared events library
 
 	"github.com/gin-gonic/gin"
 )
@@ -68,6 +68,9 @@ func main() {
 	authMiddleware := middleware.JWTAuthMiddleware(cfg.JWTSecret)
 
 	router := gin.Default()
+	
+	// Disable automatic trailing slash redirect to prevent 301 loops
+	router.RedirectTrailingSlash = false
 
 	// CORS middleware
 	router.Use(func(c *gin.Context) {

@@ -15,18 +15,26 @@ type JobService struct {
 	jobRepo         *repository.JobRepository
 	applicationRepo *repository.ApplicationRepository
 	savedJobRepo    *repository.SavedJobRepository
+	companyRepo     *repository.CompanyRepository
 }
 
 func NewJobService(
 	jobRepo *repository.JobRepository,
 	applicationRepo *repository.ApplicationRepository,
 	savedJobRepo *repository.SavedJobRepository,
+	companyRepo *repository.CompanyRepository,
 ) *JobService {
 	return &JobService{
 		jobRepo:         jobRepo,
 		applicationRepo: applicationRepo,
 		savedJobRepo:    savedJobRepo,
+		companyRepo:     companyRepo,
 	}
+}
+
+// GetCompanyIDByUserID gets company ID for a user
+func (s *JobService) GetCompanyIDByUserID(userID uint) (uint, error) {
+	return s.companyRepo.GetCompanyIDByUserID(userID)
 }
 
 // CreateJob creates a new job posting

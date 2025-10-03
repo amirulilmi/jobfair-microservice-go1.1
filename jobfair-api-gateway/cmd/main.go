@@ -24,10 +24,17 @@ func main() {
 	port := getEnv("PORT", "8000")
 	authServiceURL := getEnv("AUTH_SERVICE_URL", "http://localhost:8080")
 	companyServiceURL := getEnv("COMPANY_SERVICE_URL", "http://localhost:8081")
+	jobServiceURL := getEnv("JOB_SERVICE_URL", "http://localhost:8082")
 	userProfileServiceURL := getEnv("USER_PROFILE_SERVICE_URL", "http://localhost:8083")
 
 	// Initialize Gin router
 	router := gin.Default()
+	
+	// Disable automatic trailing slash redirect to prevent 301 loops
+	router.RedirectTrailingSlash = false
+	
+	// Set max multipart memory for file uploads (50MB)
+	router.MaxMultipartMemory = 50 << 20
 
 	// CORS middleware
 	router.Use(corsMiddleware())
@@ -44,6 +51,7 @@ func main() {
 			"services": gin.H{
 				"auth":    authServiceURL,
 				"company": companyServiceURL,
+				"job":     jobServiceURL,
 				"profile": userProfileServiceURL,
 			},
 		})
@@ -58,120 +66,74 @@ func main() {
 		})
 	})
 
-	// Create reverse proxy for Auth Service
+	// Create reverse proxies
 	authProxy := createReverseProxy(authServiceURL, "auth-service")
-	router.Any("/api/v1/auth/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		// Remove /api/v1/auth prefix before proxying
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/auth")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		// Add /api/v1/auth back for the target service
-		r.URL.Path = "/api/v1/auth" + r.URL.Path
-		authProxy.ServeHTTP(w, r)
-	}))
-
-	// Create reverse proxy for Company Service
 	companyProxy := createReverseProxy(companyServiceURL, "company-service")
-	router.Any("/api/v1/companies/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/companies")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		r.URL.Path = "/api/v1/companies" + r.URL.Path
-		companyProxy.ServeHTTP(w, r)
-	}))
-
-	// Create reverse proxy for User Profile Service
+	jobProxy := createReverseProxy(jobServiceURL, "job-service")
 	profileProxy := createReverseProxy(userProfileServiceURL, "user-profile-service")
-	router.Any("/api/v1/profiles/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/profiles")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		r.URL.Path = "/api/v1/profiles" + r.URL.Path
-		profileProxy.ServeHTTP(w, r)
-	}))
+
+	// ==================== AUTH SERVICE ROUTES ====================
+	// Login & Token routes
+	router.Any("/api/v1/login", proxyHandler(authProxy, "/api/v1/login"))
+	router.Any("/api/v1/refresh", proxyHandler(authProxy, "/api/v1/refresh"))
+	
+	// Registration routes (multi-step)
+	router.Any("/api/v1/register/*proxyPath", proxyHandler(authProxy, "/api/v1/register"))
+	router.Any("/api/v1/register", proxyHandler(authProxy, "/api/v1/register"))
+	
+	// Other auth routes
+	router.Any("/api/v1/auth/*proxyPath", proxyHandler(authProxy, "/api/v1/auth"))
+
+	// ==================== COMPANY SERVICE ROUTES ====================
+	// Company CRUD routes
+	router.Any("/api/v1/companies/*proxyPath", proxyHandler(companyProxy, "/api/v1/companies"))
+	router.Any("/api/v1/companies", proxyHandler(companyProxy, "/api/v1/companies"))
+	
+	// My company route
+	router.Any("/api/v1/my-company", proxyHandler(companyProxy, "/api/v1/my-company"))
+
+	// ==================== JOB SERVICE ROUTES ====================
+	router.Any("/api/v1/jobs/*proxyPath", proxyHandler(jobProxy, "/api/v1/jobs"))
+	router.Any("/api/v1/jobs", proxyHandler(jobProxy, "/api/v1/jobs"))
+	router.Any("/api/v1/applications/*proxyPath", proxyHandler(jobProxy, "/api/v1/applications"))
+	router.Any("/api/v1/applications", proxyHandler(jobProxy, "/api/v1/applications"))
+
+	// ==================== USER PROFILE SERVICE ROUTES ====================
+	// Profile routes
+	router.Any("/api/v1/profiles/*proxyPath", proxyHandler(profileProxy, "/api/v1/profiles"))
+	router.Any("/api/v1/profiles", proxyHandler(profileProxy, "/api/v1/profiles"))
 
 	// Work Experience routes
-	router.Any("/api/v1/work-experiences/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/work-experiences")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		r.URL.Path = "/api/v1/work-experiences" + r.URL.Path
-		profileProxy.ServeHTTP(w, r)
-	}))
+	router.Any("/api/v1/work-experiences/*proxyPath", proxyHandler(profileProxy, "/api/v1/work-experiences"))
+	router.Any("/api/v1/work-experiences", proxyHandler(profileProxy, "/api/v1/work-experiences"))
 
 	// Education routes
-	router.Any("/api/v1/educations/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/educations")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		r.URL.Path = "/api/v1/educations" + r.URL.Path
-		profileProxy.ServeHTTP(w, r)
-	}))
+	router.Any("/api/v1/educations/*proxyPath", proxyHandler(profileProxy, "/api/v1/educations"))
+	router.Any("/api/v1/educations", proxyHandler(profileProxy, "/api/v1/educations"))
 
 	// Certifications routes
-	router.Any("/api/v1/certifications/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/certifications")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		r.URL.Path = "/api/v1/certifications" + r.URL.Path
-		profileProxy.ServeHTTP(w, r)
-	}))
+	router.Any("/api/v1/certifications/*proxyPath", proxyHandler(profileProxy, "/api/v1/certifications"))
+	router.Any("/api/v1/certifications", proxyHandler(profileProxy, "/api/v1/certifications"))
 
 	// Skills routes
-	router.Any("/api/v1/skills/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/skills")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		r.URL.Path = "/api/v1/skills" + r.URL.Path
-		profileProxy.ServeHTTP(w, r)
-	}))
+	router.Any("/api/v1/skills/*proxyPath", proxyHandler(profileProxy, "/api/v1/skills"))
+	router.Any("/api/v1/skills", proxyHandler(profileProxy, "/api/v1/skills"))
 
 	// Career Preference routes
-	router.Any("/api/v1/career-preference/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/career-preference")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		r.URL.Path = "/api/v1/career-preference" + r.URL.Path
-		profileProxy.ServeHTTP(w, r)
-	}))
+	router.Any("/api/v1/career-preference/*proxyPath", proxyHandler(profileProxy, "/api/v1/career-preference"))
+	router.Any("/api/v1/career-preference", proxyHandler(profileProxy, "/api/v1/career-preference"))
 
 	// Position Preferences routes
-	router.Any("/api/v1/position-preferences/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/position-preferences")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		r.URL.Path = "/api/v1/position-preferences" + r.URL.Path
-		profileProxy.ServeHTTP(w, r)
-	}))
+	router.Any("/api/v1/position-preferences/*proxyPath", proxyHandler(profileProxy, "/api/v1/position-preferences"))
+	router.Any("/api/v1/position-preferences", proxyHandler(profileProxy, "/api/v1/position-preferences"))
 
 	// CV routes
-	router.Any("/api/v1/cv/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/cv")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		r.URL.Path = "/api/v1/cv" + r.URL.Path
-		profileProxy.ServeHTTP(w, r)
-	}))
+	router.Any("/api/v1/cv/*proxyPath", proxyHandler(profileProxy, "/api/v1/cv"))
+	router.Any("/api/v1/cv", proxyHandler(profileProxy, "/api/v1/cv"))
 
 	// Badges routes
-	router.Any("/api/v1/badges/*proxyPath", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api/v1/badges")
-		if r.URL.Path == "" {
-			r.URL.Path = "/"
-		}
-		r.URL.Path = "/api/v1/badges" + r.URL.Path
-		profileProxy.ServeHTTP(w, r)
-	}))
+	router.Any("/api/v1/badges/*proxyPath", proxyHandler(profileProxy, "/api/v1/badges"))
+	router.Any("/api/v1/badges", proxyHandler(profileProxy, "/api/v1/badges"))
 
 	// 404 handler
 	router.NoRoute(func(c *gin.Context) {
@@ -187,11 +149,29 @@ func main() {
 	log.Printf("📡 Proxying to services:")
 	log.Printf("   - Auth Service: %s", authServiceURL)
 	log.Printf("   - Company Service: %s", companyServiceURL)
+	log.Printf("   - Job Service: %s", jobServiceURL)
 	log.Printf("   - User Profile Service: %s", userProfileServiceURL)
 
 	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("❌ Failed to start API Gateway: %v", err)
 	}
+}
+
+// proxyHandler creates a Gin handler that proxies requests
+func proxyHandler(proxy *httputil.ReverseProxy, pathPrefix string) gin.HandlerFunc {
+	return gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+		// Store original path
+		originalPath := r.URL.Path
+		
+		// Keep the original path without modification
+		// The target service will handle the full path including prefix
+		
+		// Log the proxy
+		log.Printf("🔄 Proxying: %s", originalPath)
+		
+		// Serve the request with original path
+		proxy.ServeHTTP(w, r)
+	})
 }
 
 // createReverseProxy creates a reverse proxy for a service
@@ -226,10 +206,11 @@ func createReverseProxy(targetURL string, serviceName string) *httputil.ReverseP
 func corsMiddleware() gin.HandlerFunc {
 	config := cors.Config{
 		AllowOrigins:     strings.Split(getEnv("CORS_ALLOWED_ORIGINS", "*"), ","),
-		AllowMethods:     strings.Split(getEnv("CORS_ALLOWED_METHODS", "GET,POST,PUT,DELETE,OPTIONS"), ","),
-		AllowHeaders:     strings.Split(getEnv("CORS_ALLOWED_HEADERS", "Content-Type,Authorization"), ","),
+		AllowMethods:     strings.Split(getEnv("CORS_ALLOWED_METHODS", "GET,POST,PUT,DELETE,OPTIONS,PATCH"), ","),
+		AllowHeaders:     strings.Split(getEnv("CORS_ALLOWED_HEADERS", "Content-Type,Authorization,Accept,Origin,User-Agent,Cache-Control,Keep-Alive,X-Requested-With"), ","),
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
+		AllowFiles:       true,
 		MaxAge:           12 * time.Hour,
 	}
 

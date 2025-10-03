@@ -259,6 +259,7 @@ services:
     environment:
       DATABASE_URL: postgres://jobfair_user:jobfair_pass@postgres-profile:5432/jobfair_profiles?sslmode=disable
       AUTH_SERVICE_URL: http://auth-service:8080
+      RABBITMQ_URL: amqp://jobfair_user:jobfair_pass@rabbitmq:5672/
       JWT_SECRET: your-super-secret-jwt-key-for-development
       PORT: 8083
       GIN_MODE: debug
@@ -271,6 +272,8 @@ services:
         condition: service_healthy
       profile-migration:
         condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
       auth-service:
         condition: service_started
     restart: unless-stopped
@@ -281,13 +284,13 @@ services:
       dockerfile: jobfair-api-gateway/Dockerfile
     container_name: jobfair-api-gateway
     ports:
-      - "80:8080"
+      - "80:8000"
     environment:
       AUTH_SERVICE_URL: http://auth-service:8080
       COMPANY_SERVICE_URL: http://company-service:8080
       JOB_SERVICE_URL: http://job-service:8082
-      PROFILE_SERVICE_URL: http://user-profile-service:8083
-      PORT: 8080
+      USER_PROFILE_SERVICE_URL: http://user-profile-service:8083
+      PORT: 8000
       GIN_MODE: debug
     networks:
       - jobfair_network

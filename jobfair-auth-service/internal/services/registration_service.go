@@ -13,7 +13,7 @@ import (
 	"jobfair-auth-service/internal/models"
 	"jobfair-auth-service/internal/repository"
 	"jobfair-auth-service/internal/utils"
-	"jobfair-shared-libs/go/events" // Import shared events library
+	"github.com/jobfair/shared/events" // Updated import
 )
 
 type RegistrationService struct {
@@ -157,6 +157,7 @@ func (s *RegistrationService) CompleteBasicProfileCompany(userID uint, req *mode
 
 	profile.CompanyName = req.CompanyName
 	profile.Industry = req.Industry
+	profile.ContactName = req.ContactName
 	profile.PhoneNumber = req.PhoneNumber
 	profile.Address = req.Address
 	profile.Website = req.Website
@@ -237,6 +238,15 @@ func (s *RegistrationService) VerifyPhoneOTP(req *models.VerifyOTPRequest) (*mod
 			return nil, err
 		}
 
+		// 🚀 Publish user.registered event for job seekers
+		if user.UserType == models.UserTypeJobSeeker {
+			if err := s.publishUserRegisteredEvent(user); err != nil {
+				fmt.Printf("⚠️ Warning: Failed to publish user registered event: %v\n", err)
+			} else {
+				fmt.Printf("✅ User registered event published for user_id: %d\n", user.ID)
+			}
+		}
+
 		// Return appropriate data based on user type
 		if user.UserType == models.UserTypeCompany {
 			companyProfile, _ := s.companyProfileRepo.GetByUserID(user.ID)
@@ -290,6 +300,15 @@ func (s *RegistrationService) VerifyPhoneOTP(req *models.VerifyOTPRequest) (*mod
 
 	if err := s.userRepo.Update(user); err != nil {
 		return nil, err
+	}
+
+	// 🚀 Publish user.registered event for job seekers
+	if user.UserType == models.UserTypeJobSeeker {
+		if err := s.publishUserRegisteredEvent(user); err != nil {
+			fmt.Printf("⚠️ Warning: Failed to publish user registered event: %v\n", err)
+		} else {
+			fmt.Printf("✅ User registered event published for user_id: %d\n", user.ID)
+		}
 	}
 
 	// Return appropriate data based on user type
@@ -428,9 +447,42 @@ func (s *RegistrationService) UploadProfilePhoto(userID uint, photoURL string) (
 				fmt.Printf("✅ Company registered event published for user_id: %d\n", userID)
 			}
 		}
+	} else if user.UserType == models.UserTypeJobSeeker {
+		// 🚀 Publish/Re-publish user registered event with photo URL for job seekers
+		if err := s.publishUserRegisteredEvent(user); err != nil {
+			fmt.Printf("⚠️ Warning: Failed to publish user profile photo update event: %v\n", err)
+		} else {
+			fmt.Printf("✅ User profile photo updated event published for user_id: %d\n", userID)
+		}
 	}
 
 	return &models.ProfilePhotoData{PhotoURL: photoURL}, nil
+}
+
+// 🎯 NEW: Publish user registered event
+func (s *RegistrationService) publishUserRegisteredEvent(user *models.User) error {
+	if s.eventPublisher == nil {
+		return errors.New("event publisher not initialized")
+	}
+
+	phoneNumber := ""
+	if user.PhoneNumber != nil {
+		phoneNumber = *user.PhoneNumber
+	}
+
+	fullName := fmt.Sprintf("%s %s", user.FirstName, user.LastName)
+
+	eventData := events.UserRegisteredData{
+		UserID:           user.ID,
+		Email:            user.Email,
+		FullName:         fullName,
+		PhoneNumber:      phoneNumber,
+		Role:             string(user.UserType),
+		ProfilePhotoURL:  user.ProfilePhoto,
+	}
+
+	ctx := context.Background()
+	return s.eventPublisher.PublishUserRegistered(ctx, eventData)
 }
 
 // 🎯 NEW: Publish company registered event

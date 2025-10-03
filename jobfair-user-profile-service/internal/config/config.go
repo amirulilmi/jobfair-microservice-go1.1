@@ -19,6 +19,7 @@ type Config struct {
 	AWSSecretAccessKey string
 	AuthServiceURL     string
 	CompanyServiceURL  string
+	RabbitMQURL        string
 }
 
 func Load() *Config {
@@ -38,6 +39,7 @@ func Load() *Config {
 		AWSSecretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", ""),
 		AuthServiceURL:     getEnv("AUTH_SERVICE_URL", "http://localhost:8080"),
 		CompanyServiceURL:  getEnv("COMPANY_SERVICE_URL", "http://localhost:8081"),
+		RabbitMQURL:        getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
 	}
 }
 

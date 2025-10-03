@@ -61,6 +61,21 @@ func NewPublisher(rabbitmqURL string) (*Publisher, error) {
 	return nil, fmt.Errorf("failed to connect to RabbitMQ after %d attempts: %w", maxRetries, err)
 }
 
+// PublishUserRegistered publishes a user registered event
+func (p *Publisher) PublishUserRegistered(ctx context.Context, data UserRegisteredData) error {
+	event := UserRegisteredEvent{
+		BaseEvent: BaseEvent{
+			EventID:   uuid.New().String(),
+			EventType: EventTypeUserRegistered,
+			Timestamp: time.Now(),
+			Version:   "1.0",
+		},
+		Data: data,
+	}
+
+	return p.publish(ctx, EventTypeUserRegistered, event)
+}
+
 // PublishCompanyRegistered publishes a company registered event
 func (p *Publisher) PublishCompanyRegistered(ctx context.Context, data CompanyRegisteredData) error {
 	event := CompanyRegisteredEvent{

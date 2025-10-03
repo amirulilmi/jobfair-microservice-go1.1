@@ -64,6 +64,10 @@ func main() {
 
 	// Setup Gin
 	router := gin.Default()
+	
+	// Disable automatic trailing slash redirect to prevent 301 loops
+	router.RedirectTrailingSlash = false
+	
 	router.MaxMultipartMemory = 10 << 20 // 10MB
 
 	// CORS middleware

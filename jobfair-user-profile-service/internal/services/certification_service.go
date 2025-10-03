@@ -27,17 +27,18 @@ func NewCertificationService(repo repository.CertificationRepository, profileSer
 }
 
 func (s *certificationService) Create(userID uint, req *models.CertificationRequest) (*models.Certification, error) {
-	profile, err := s.profileService.GetProfile(userID)
+	// Get or auto-create profile if not exists
+	profile, err := s.profileService.GetOrCreateProfile(userID)
 	if err != nil {
-		return nil, errors.New("profile not found")
+		return nil, errors.New("failed to get or create profile: " + err.Error())
 	}
 
 	certification := &models.Certification{
 		ProfileID:         profile.ID,
 		CertificationName: req.CertificationName,
 		Organizer:         req.Organizer,
-		IssueDate:         req.IssueDate,
-		ExpiryDate:        req.ExpiryDate,
+		IssueDate:         *req.IssueDate.ToTime(),
+		ExpiryDate:        req.IssueDate.ToTime(),
 		CredentialID:      req.CredentialID,
 		CredentialURL:     req.CredentialURL,
 		Description:       req.Description,
@@ -96,8 +97,8 @@ func (s *certificationService) Update(userID uint, id uint, req *models.Certific
 
 	certification.CertificationName = req.CertificationName
 	certification.Organizer = req.Organizer
-	certification.IssueDate = req.IssueDate
-	certification.ExpiryDate = req.ExpiryDate
+	certification.IssueDate = *req.IssueDate.ToTime()
+	certification.ExpiryDate = req.ExpiryDate.ToTime()
 	certification.CredentialID = req.CredentialID
 	certification.CredentialURL = req.CredentialURL
 	certification.Description = req.Description

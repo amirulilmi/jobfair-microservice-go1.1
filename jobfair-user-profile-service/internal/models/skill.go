@@ -22,7 +22,7 @@ type SkillRequest struct {
 	YearsOfExperience *int   `json:"years_of_experience"`
 }
 
+// Updated BulkSkillRequest to match the actual JSON request format
 type BulkSkillRequest struct {
-	TechnicalSkills []SkillRequest `json:"technical_skills"`
-	SoftSkills      []SkillRequest `json:"soft_skills"`
+	Skills []SkillRequest `json:"skills" binding:"required,dive"`
 }

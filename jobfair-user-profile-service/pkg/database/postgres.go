@@ -34,8 +34,6 @@ func Connect(databaseURL string) (*gorm.DB, error) {
 				// Test connection
 				if err := sqlDB.Ping(); err == nil {
 					log.Println("✅ Database connected successfully")
-					// ❌ NO AUTO MIGRATION - Use migration files instead
-					// Migration files are located in: migrations/
 					return db, nil
 				}
 			}

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log"
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/repository"
 
@@ -11,6 +12,7 @@ import (
 type ProfileService interface {
 	CreateProfile(userID uint, fullName, phoneNumber string) (*models.Profile, error)
 	GetProfile(userID uint) (*models.Profile, error)
+	GetOrCreateProfile(userID uint) (*models.Profile, error)
 	GetProfileWithRelations(userID uint) (*models.Profile, error)
 	UpdateProfile(userID uint, req *models.ProfileUpdateRequest) (*models.Profile, error)
 	CalculateCompletionStatus(profile *models.Profile) int
@@ -74,6 +76,52 @@ func (s *profileService) GetProfile(userID uint) (*models.Profile, error) {
 	return profile, nil
 }
 
+func (s *profileService) GetOrCreateProfile(userID uint) (*models.Profile, error) {
+	log.Printf("[GetOrCreateProfile] Starting for userID: %d", userID)
+	
+	// Try to get existing profile
+	profile, err := s.profileRepo.GetByUserID(userID)
+	if err == nil {
+		log.Printf("[GetOrCreateProfile] Found existing profile: ID=%d, UserID=%d", profile.ID, profile.UserID)
+		return profile, nil
+	}
+
+	log.Printf("[GetOrCreateProfile] Profile not found, error: %v", err)
+
+	// If profile not found, create a new one
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Printf("[GetOrCreateProfile] Creating new profile for userID: %d", userID)
+		
+		newProfile := &models.Profile{
+			UserID:           userID,
+			FullName:         "",
+			PhoneNumber:      "",
+			CompletionStatus: 0,
+		}
+
+		err = s.profileRepo.Create(newProfile)
+		if err != nil {
+			log.Printf("[GetOrCreateProfile] Failed to create profile: %v", err)
+			return nil, err
+		}
+		
+		log.Printf("[GetOrCreateProfile] Profile created, ID after Create: %d", newProfile.ID)
+
+		// Reload from DB to ensure ID is populated
+		profile, err = s.profileRepo.GetByUserID(userID)
+		if err != nil {
+			log.Printf("[GetOrCreateProfile] Failed to reload profile: %v", err)
+			return nil, err
+		}
+		
+		log.Printf("[GetOrCreateProfile] Profile reloaded: ID=%d, UserID=%d", profile.ID, profile.UserID)
+		return profile, nil
+	}
+
+	log.Printf("[GetOrCreateProfile] Unexpected error: %v", err)
+	return nil, err
+}
+
 func (s *profileService) GetProfileWithRelations(userID uint) (*models.Profile, error) {
 	profile, err := s.profileRepo.GetWithRelations(userID)
 	if err != nil {
@@ -98,8 +146,17 @@ func (s *profileService) UpdateProfile(userID uint, req *models.ProfileUpdateReq
 	if req.PhoneNumber != nil {
 		profile.PhoneNumber = *req.PhoneNumber
 	}
+	if req.Headline != nil {
+		profile.Headline = *req.Headline
+	}
+	if req.Summary != nil {
+		profile.Summary = *req.Summary
+	}
 	if req.Bio != nil {
 		profile.Bio = *req.Bio
+	}
+	if req.Location != nil {
+		profile.Location = *req.Location
 	}
 	if req.DateOfBirth != nil {
 		profile.DateOfBirth = req.DateOfBirth
@@ -124,6 +181,9 @@ func (s *profileService) UpdateProfile(userID uint, req *models.ProfileUpdateReq
 	}
 	if req.LinkedInURL != nil {
 		profile.LinkedInURL = *req.LinkedInURL
+	}
+	if req.GitHubURL != nil {
+		profile.GitHubURL = *req.GitHubURL
 	}
 	if req.PortfolioURL != nil {
 		profile.PortfolioURL = *req.PortfolioURL

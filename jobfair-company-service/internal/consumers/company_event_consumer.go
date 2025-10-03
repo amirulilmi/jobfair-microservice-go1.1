@@ -11,12 +11,13 @@ import (
 	"jobfair-company-service/internal/repository"
 	"jobfair-company-service/internal/utils"
 
-	"jobfair-shared-libs/go/events"
+	"github.com/jobfair/shared/events"
 )
 
 type CompanyEventConsumer struct {
-	companyRepo *repository.CompanyRepository
-	consumer    *events.Consumer
+	companyRepo    *repository.CompanyRepository
+	consumer       *events.Consumer
+	eventPublisher *events.Publisher
 }
 
 func NewCompanyEventConsumer(
@@ -28,9 +29,16 @@ func NewCompanyEventConsumer(
 		return nil, fmt.Errorf("failed to create consumer: %w", err)
 	}
 
+	// Initialize publisher to re-publish events with company_id
+	publisher, err := events.NewPublisher(rabbitmqURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create publisher: %w", err)
+	}
+
 	return &CompanyEventConsumer{
-		companyRepo: companyRepo,
-		consumer:    consumer,
+		companyRepo:    companyRepo,
+		consumer:       consumer,
+		eventPublisher: publisher,
 	}, nil
 }
 
@@ -96,6 +104,7 @@ func (c *CompanyEventConsumer) handleCompanyRegistered(ctx context.Context, body
 		Address:     data.Address,
 		LogoURL:     data.LogoURL,
 		ContactName: data.ContactName, // ✅ Added ContactName
+		CompanySize: "1-10",               // ✅ Default company size
 		Slug:        slug,
 		IsVerified:  false,
 		IsFeatured:  false,
@@ -110,6 +119,30 @@ func (c *CompanyEventConsumer) handleCompanyRegistered(ctx context.Context, body
 
 	log.Printf("✅ Company created successfully: ID=%d, UserID=%d, Name=%s",
 		createdCompany.ID, createdCompany.UserID, createdCompany.Name)
+
+	// 🚀 Re-publish event WITH company_id for other services (job-service)
+	if c.eventPublisher != nil {
+		eventDataWithID := events.CompanyRegisteredData{
+			UserID:      data.UserID,
+			CompanyID:   createdCompany.ID, // ✅ Now includes company_id
+			CompanyName: data.CompanyName,
+			Email:       data.Email,
+			Phone:       data.Phone,
+			Website:     data.Website,
+			Industry:    data.Industry,
+			Address:     data.Address,
+			LogoURL:     data.LogoURL,
+			CountryCode: data.CountryCode,
+			ContactName: data.ContactName,
+		}
+
+		if err := c.eventPublisher.PublishCompanyRegistered(ctx, eventDataWithID); err != nil {
+			log.Printf("⚠️ Warning: Failed to re-publish company registered event with ID: %v", err)
+			// Don't fail the whole operation
+		} else {
+			log.Printf("📤 Re-published company.registered event with company_id=%d", createdCompany.ID)
+		}
+	}
 
 	return nil
 }
@@ -163,10 +196,16 @@ func (c *CompanyEventConsumer) handleCompanyDeleted(ctx context.Context, body []
 	return nil
 }
 
-// Close closes the consumer
+// Close closes the consumer and publisher
 func (c *CompanyEventConsumer) Close() error {
+	var err error
 	if c.consumer != nil {
-		return c.consumer.Close()
+		err = c.consumer.Close()
 	}
-	return nil
+	if c.eventPublisher != nil {
+		if pubErr := c.eventPublisher.Close(); pubErr != nil && err == nil {
+			err = pubErr
+		}
+	}
+	return err
 }

@@ -19,11 +19,11 @@ type Certification struct {
 }
 
 type CertificationRequest struct {
-	CertificationName string     `json:"certification_name" binding:"required"`
-	Organizer         string     `json:"organizer" binding:"required"`
-	IssueDate         time.Time  `json:"issue_date" binding:"required"`
-	ExpiryDate        *time.Time `json:"expiry_date"`
-	CredentialID      string     `json:"credential_id"`
-	CredentialURL     string     `json:"credential_url"`
-	Description       string     `json:"description"`
+	CertificationName string    `json:"certification_name" binding:"required"`
+	Organizer         string    `json:"organizer" binding:"required"`
+	IssueDate         *DateOnly `json:"issue_date" binding:"required"`
+	ExpiryDate        *DateOnly `json:"expiry_date"`
+	CredentialID      string    `json:"credential_id"`
+	CredentialURL     string    `json:"credential_url"`
+	Description       string    `json:"description"`
 }

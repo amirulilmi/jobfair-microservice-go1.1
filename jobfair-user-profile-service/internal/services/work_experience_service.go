@@ -30,18 +30,18 @@ func NewWorkExperienceService(
 }
 
 func (s *workExperienceService) Create(userID uint, req *models.WorkExperienceRequest) (*models.WorkExperience, error) {
-	// Get profile first to ensure it exists and get profile ID
-	profile, err := s.profileService.GetProfile(userID)
+	// Get or auto-create profile if not exists
+	profile, err := s.profileService.GetOrCreateProfile(userID)
 	if err != nil {
-		return nil, errors.New("profile not found")
+		return nil, errors.New("failed to get or create profile: " + err.Error())
 	}
 
 	workExp := &models.WorkExperience{
 		ProfileID:      profile.ID,
 		CompanyName:    req.CompanyName,
 		JobPosition:    req.JobPosition,
-		StartDate:      req.StartDate,
-		EndDate:        req.EndDate,
+		StartDate:      *req.StartDate.ToTime(),
+		EndDate:        req.EndDate.ToTime(),
 		IsCurrentJob:   req.IsCurrentJob,
 		JobDescription: req.JobDescription,
 	}
@@ -104,8 +104,8 @@ func (s *workExperienceService) Update(userID uint, id uint, req *models.WorkExp
 	// Update fields
 	workExp.CompanyName = req.CompanyName
 	workExp.JobPosition = req.JobPosition
-	workExp.StartDate = req.StartDate
-	workExp.EndDate = req.EndDate
+	workExp.StartDate = *req.StartDate.ToTime()
+	workExp.EndDate = req.EndDate.ToTime()
 	workExp.IsCurrentJob = req.IsCurrentJob
 	workExp.JobDescription = req.JobDescription
 

@@ -31,23 +31,12 @@ func (h *JobHandler) CreateJob(c *gin.Context) {
 		return
 	}
 
-	// Get company_id from query or body
-	companyID := c.GetUint("company_id")
-	if companyID == 0 {
-		// Try from query
-		companyIDStr := c.Query("company_id")
-		if companyIDStr != "" {
-			id, err := strconv.ParseUint(companyIDStr, 10, 32)
-			if err == nil {
-				companyID = uint(id)
-			}
-		}
-	}
-
-	if companyID == 0 {
+	// Auto-detect company_id from user_id
+	companyID, err := h.jobService.GetCompanyIDByUserID(userID)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, models.APIResponse{
 			Success: false,
-			Message: "company_id is required",
+			Message: "Company profile not found. Please complete company registration first.",
 		})
 		return
 	}

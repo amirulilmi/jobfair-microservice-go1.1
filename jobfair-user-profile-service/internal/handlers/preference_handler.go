@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"strings"
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/services"
 
@@ -31,23 +30,7 @@ func (h *PreferenceHandler) CreateOrUpdateCareerPreference(c *gin.Context) {
 		return
 	}
 
-	// Convert arrays to comma-separated strings
-	preferredWorkTypes := strings.Join(req.PreferredWorkTypes, ",")
-	preferredLocations := strings.Join(req.PreferredLocations, ",")
-
-	preference, err := h.service.CreateOrUpdateCareerPreference(
-		userID.(uint),
-		req.IsActivelyLooking,
-		req.ExpectedSalaryMin,
-		req.ExpectedSalaryMax,
-		req.SalaryCurrency,
-		req.IsNegotiable,
-		preferredWorkTypes,
-		preferredLocations,
-		req.WillingToRelocate,
-		req.AvailableStartDate,
-	)
-
+	preference, err := h.service.CreateOrUpdateCareerPreference(userID.(uint), &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "SAVE_FAILED", nil))
 		return

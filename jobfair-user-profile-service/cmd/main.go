@@ -2,12 +2,17 @@ package main
 
 import (
 	"jobfair-user-profile-service/internal/config"
+	"jobfair-user-profile-service/internal/consumers"
 	"jobfair-user-profile-service/internal/handlers"
 	"jobfair-user-profile-service/internal/middleware"
+	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/repository"
 	"jobfair-user-profile-service/internal/services"
 	"jobfair-user-profile-service/pkg/database"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,6 +27,22 @@ func main() {
 		log.Fatalf("❌ Failed to connect to database: %v", err)
 	}
 	log.Println("✅ Database connected successfully")
+
+	// Auto-migrate models
+	if err := db.AutoMigrate(
+		&models.Profile{},
+		&models.WorkExperience{},
+		&models.Education{},
+		&models.Certification{},
+		&models.Skill{},
+		&models.CareerPreference{},
+		&models.PositionPreference{},
+		&models.CVDocument{},
+		&models.Badge{},
+	); err != nil {
+		log.Fatalf("❌ Failed to migrate database: %v", err)
+	}
+	log.Println("✅ Database migrated successfully")
 
 	// Initialize repositories
 	profileRepo := repository.NewProfileRepository(db)
@@ -50,6 +71,17 @@ func main() {
 	preferenceService := services.NewPreferenceService(preferenceRepo, profileService)
 	cvService := services.NewCVService(cvRepo, profileService, cfg)
 
+	// 🚀 Initialize Event Consumer
+	eventConsumer, err := consumers.NewUserEventConsumer(cfg.RabbitMQURL, profileService)
+	if err != nil {
+		log.Fatalf("❌ Failed to create event consumer: %v", err)
+	}
+
+	// Start consuming events
+	if err := eventConsumer.Start(); err != nil {
+		log.Fatalf("❌ Failed to start event consumer: %v", err)
+	}
+
 	// Initialize handlers
 	profileHandler := handlers.NewProfileHandler(profileService)
 	workExpHandler := handlers.NewWorkExperienceHandler(workExpService)
@@ -61,6 +93,9 @@ func main() {
 
 	// Initialize Gin router
 	router := gin.Default()
+	
+	// Disable automatic trailing slash redirect to prevent 301 loops
+	router.RedirectTrailingSlash = false
 
 	// Health check endpoint (no auth required)
 	router.GET("/health", func(c *gin.Context) {
@@ -140,13 +175,13 @@ func main() {
 			positionPrefs.DELETE("/:id", preferenceHandler.DeletePositionPreference)
 		}
 
-		// CV routes
-		cv := v1.Group("/cv")
-		{
-			cv.POST("", cvHandler.Upload)
-			cv.GET("", cvHandler.Get)
-			cv.DELETE("", cvHandler.Delete)
-		}
+		// CV routes - handle both with and without trailing slash
+		v1.POST("/cv", cvHandler.Upload)
+		v1.POST("/cv/", cvHandler.Upload)
+		v1.GET("/cv", cvHandler.Get)
+		v1.GET("/cv/", cvHandler.Get)
+		v1.DELETE("/cv", cvHandler.Delete)
+		v1.DELETE("/cv/", cvHandler.Delete)
 
 		// Badge routes
 		badges := v1.Group("/badges")
@@ -158,6 +193,19 @@ func main() {
 			})
 		}
 	}
+
+	// Graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-quit
+		log.Println("🛑 Shutting down server...")
+		if err := eventConsumer.Close(); err != nil {
+			log.Printf("⚠️ Error closing event consumer: %v", err)
+		}
+		os.Exit(0)
+	}()
 
 	// Start server
 	log.Printf("🚀 %s started on port %s\n", cfg.ServiceName, cfg.Port)

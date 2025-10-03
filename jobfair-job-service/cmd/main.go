@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"jobfair-job-service/internal/config"
+	"jobfair-job-service/internal/consumers"
 	"jobfair-job-service/internal/handlers"
 	"jobfair-job-service/internal/middleware"
 	"jobfair-job-service/internal/repository"
@@ -40,17 +41,36 @@ func main() {
 	jobRepo := repository.NewJobRepository(db)
 	applicationRepo := repository.NewApplicationRepository(db)
 	savedJobRepo := repository.NewSavedJobRepository(db)
+	companyRepo := repository.NewCompanyRepository(db)
 
 	// Initialize services
-	jobService := services.NewJobService(jobRepo, applicationRepo, savedJobRepo)
+	jobService := services.NewJobService(jobRepo, applicationRepo, savedJobRepo, companyRepo)
 	applicationService := services.NewApplicationService(applicationRepo, jobRepo)
 
 	// Initialize handlers
 	jobHandler := handlers.NewJobHandler(jobService)
 	applicationHandler := handlers.NewApplicationHandler(applicationService)
 
+	// Initialize and start event consumer
+	companyConsumer, err := consumers.NewCompanyEventConsumer(cfg.RabbitMQURL, companyRepo)
+	if err != nil {
+		log.Printf("⚠️ Warning: Failed to initialize company event consumer: %v", err)
+		log.Println("Service will continue without event consumption")
+	} else {
+		go func() {
+			if err := companyConsumer.Start(); err != nil {
+				log.Printf("❌ Company event consumer error: %v", err)
+			}
+		}()
+		log.Println("✅ Company event consumer started")
+	}
+
 	// Setup Gin
 	router := gin.Default()
+	
+	// Disable automatic trailing slash redirect to prevent 301 loops
+	router.RedirectTrailingSlash = false
+	
 	router.MaxMultipartMemory = 10 << 20 // 10MB
 
 	// CORS middleware
@@ -145,5 +165,13 @@ func main() {
 	// Wait for interrupt signal
 	<-quit
 	log.Println("🛑 Shutting down server...")
+	
+	// Close consumer
+	if companyConsumer != nil {
+		if err := companyConsumer.Close(); err != nil {
+			log.Printf("Error closing consumer: %v", err)
+		}
+	}
+	
 	log.Println("✅ Server exited")
 }

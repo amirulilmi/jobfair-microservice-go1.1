@@ -27,9 +27,10 @@ func NewEducationService(repo repository.EducationRepository, profileService Pro
 }
 
 func (s *educationService) Create(userID uint, req *models.EducationRequest) (*models.Education, error) {
-	profile, err := s.profileService.GetProfile(userID)
+	// Get or auto-create profile if not exists
+	profile, err := s.profileService.GetOrCreateProfile(userID)
 	if err != nil {
-		return nil, errors.New("profile not found")
+		return nil, errors.New("failed to get or create profile: " + err.Error())
 	}
 
 	education := &models.Education{
@@ -37,8 +38,8 @@ func (s *educationService) Create(userID uint, req *models.EducationRequest) (*m
 		University:  req.University,
 		Major:       req.Major,
 		Degree:      req.Degree,
-		StartDate:   req.StartDate,
-		EndDate:     req.EndDate,
+		StartDate:   *req.StartDate.ToTime(),
+		EndDate:     req.EndDate.ToTime(),
 		IsCurrent:   req.IsCurrent,
 		GPA:         req.GPA,
 		Description: req.Description,
@@ -98,8 +99,8 @@ func (s *educationService) Update(userID uint, id uint, req *models.EducationReq
 	education.University = req.University
 	education.Major = req.Major
 	education.Degree = req.Degree
-	education.StartDate = req.StartDate
-	education.EndDate = req.EndDate
+	education.StartDate = *req.StartDate.ToTime()
+	education.EndDate = req.EndDate.ToTime()
 	education.IsCurrent = req.IsCurrent
 	education.GPA = req.GPA
 	education.Description = req.Description

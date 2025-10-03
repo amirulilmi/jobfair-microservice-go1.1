@@ -23,23 +23,49 @@ func (h *ProfileHandler) CreateProfile(c *gin.Context) {
 		return
 	}
 
-	var req struct {
-		FullName    string `json:"full_name" binding:"required"`
-		PhoneNumber string `json:"phone_number" binding:"required"`
-	}
-
+	var req models.ProfileUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse("Invalid request", "VALIDATION_ERROR", err.Error()))
 		return
 	}
 
-	profile, err := h.service.CreateProfile(userID.(uint), req.FullName, req.PhoneNumber)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "CREATE_FAILED", nil))
-		return
+	// Check if profile exists
+	existingProfile, _ := h.service.GetProfile(userID.(uint))
+	
+	if existingProfile != nil {
+		// Update existing profile
+		profile, err := h.service.UpdateProfile(userID.(uint), &req)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "UPDATE_FAILED", nil))
+			return
+		}
+		c.JSON(http.StatusOK, models.SuccessResponse("Profile updated successfully", profile))
+	} else {
+		// Create new profile
+		fullName := ""
+		phoneNumber := ""
+		if req.FullName != nil {
+			fullName = *req.FullName
+		}
+		if req.PhoneNumber != nil {
+			phoneNumber = *req.PhoneNumber
+		}
+		
+		profile, err := h.service.CreateProfile(userID.(uint), fullName, phoneNumber)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "CREATE_FAILED", nil))
+			return
+		}
+		
+		// Update with additional fields
+		profile, err = h.service.UpdateProfile(userID.(uint), &req)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "UPDATE_FAILED", nil))
+			return
+		}
+		
+		c.JSON(http.StatusCreated, models.SuccessResponse("Profile created successfully", profile))
 	}
-
-	c.JSON(http.StatusCreated, models.SuccessResponse("Profile created successfully", profile))
 }
 
 func (h *ProfileHandler) GetProfile(c *gin.Context) {

@@ -28,9 +28,10 @@ func NewSkillService(repo repository.SkillRepository, profileService ProfileServ
 }
 
 func (s *skillService) Create(userID uint, req *models.SkillRequest) (*models.Skill, error) {
-	profile, err := s.profileService.GetProfile(userID)
+	// Get or auto-create profile if not exists
+	profile, err := s.profileService.GetOrCreateProfile(userID)
 	if err != nil {
-		return nil, errors.New("profile not found")
+		return nil, errors.New("failed to get or create profile: " + err.Error())
 	}
 
 	skill := &models.Skill{
@@ -51,19 +52,20 @@ func (s *skillService) Create(userID uint, req *models.SkillRequest) (*models.Sk
 }
 
 func (s *skillService) CreateBulk(userID uint, req *models.BulkSkillRequest) ([]models.Skill, error) {
-	profile, err := s.profileService.GetProfile(userID)
+	// Get or auto-create profile if not exists
+	profile, err := s.profileService.GetOrCreateProfile(userID)
 	if err != nil {
-		return nil, errors.New("profile not found")
+		return nil, errors.New("failed to get or create profile: " + err.Error())
 	}
 
 	var skills []models.Skill
 
-	// Create technical skills
-	for _, skillReq := range req.TechnicalSkills {
+	// Create all skills from the array
+	for _, skillReq := range req.Skills {
 		skill := models.Skill{
 			ProfileID:         profile.ID,
 			SkillName:         skillReq.SkillName,
-			SkillType:         "technical",
+			SkillType:         skillReq.SkillType,
 			ProficiencyLevel:  skillReq.ProficiencyLevel,
 			YearsOfExperience: skillReq.YearsOfExperience,
 		}
@@ -73,19 +75,8 @@ func (s *skillService) CreateBulk(userID uint, req *models.BulkSkillRequest) ([]
 		}
 	}
 
-	// Create soft skills
-	for _, skillReq := range req.SoftSkills {
-		skill := models.Skill{
-			ProfileID:         profile.ID,
-			SkillName:         skillReq.SkillName,
-			SkillType:         "soft",
-			ProficiencyLevel:  skillReq.ProficiencyLevel,
-			YearsOfExperience: skillReq.YearsOfExperience,
-		}
-		err := s.repo.Create(&skill)
-		if err == nil {
-			skills = append(skills, skill)
-		}
+	if len(skills) == 0 {
+		return nil, errors.New("failed to create any skills")
 	}
 
 	s.profileService.UpdateCompletionStatus(userID)

@@ -1,13 +1,19 @@
 # Build stage
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
 # Install dependencies
 RUN apk add --no-cache git
 
-# Copy go mod files
-COPY jobfair-user-profile-service/go.mod jobfair-user-profile-service/go.sum ./
+# Copy shared libs
+COPY jobfair-shared-libs/go ./jobfair-shared-libs/go/
+
+# Copy go mod files for profile service
+COPY jobfair-user-profile-service/go.mod jobfair-user-profile-service/go.sum ./jobfair-user-profile-service/
+
+# Download dependencies
+WORKDIR /app/jobfair-user-profile-service
 RUN go mod download
 
 # Copy source code
@@ -24,7 +30,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy binary from builder
-COPY --from=builder /app/main .
+COPY --from=builder /app/jobfair-user-profile-service/main .
 
 # Create upload directory
 RUN mkdir -p ./uploads/cv

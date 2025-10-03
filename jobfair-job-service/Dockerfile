@@ -1,30 +1,39 @@
 # Build stage
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-# Copy go mod files
-COPY jobfair-job-service/go.mod jobfair-job-service/go.sum ./
+# Install dependencies
+RUN apk add --no-cache git ca-certificates
+
+# Copy shared libs
+COPY jobfair-shared-libs/go ./jobfair-shared-libs/go/
+
+# Copy go mod files for job service
+COPY jobfair-job-service/go.mod jobfair-job-service/go.sum ./jobfair-job-service/
+
+# Download dependencies
+WORKDIR /app/jobfair-job-service
 RUN go mod download
 
 # Copy source code
 COPY jobfair-job-service/ .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/main.go
+# Build application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/main.go
 
-# Final stage
+# Runtime stage
 FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
-# Copy the binary from builder
-COPY --from=builder /app/main .
+# Copy binary from builder
+COPY --from=builder /app/jobfair-job-service/main .
 
 # Expose port
 EXPOSE 8082
 
-# Run the application
+# Run
 CMD ["./main"]

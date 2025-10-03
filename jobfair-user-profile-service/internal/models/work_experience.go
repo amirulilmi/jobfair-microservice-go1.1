@@ -18,10 +18,10 @@ type WorkExperience struct {
 }
 
 type WorkExperienceRequest struct {
-	CompanyName    string     `json:"company_name" binding:"required"`
-	JobPosition    string     `json:"job_position" binding:"required"`
-	StartDate      time.Time  `json:"start_date" binding:"required"`
-	EndDate        *time.Time `json:"end_date"`
-	IsCurrentJob   bool       `json:"is_current_job"`
-	JobDescription string     `json:"job_description"`
+	CompanyName    string    `json:"company_name" binding:"required"`
+	JobPosition    string    `json:"job_position" binding:"required"`
+	StartDate      *DateOnly `json:"start_date" binding:"required"`
+	EndDate        *DateOnly `json:"end_date"`
+	IsCurrentJob   bool      `json:"is_current_job"`
+	JobDescription string    `json:"job_description"`
 }

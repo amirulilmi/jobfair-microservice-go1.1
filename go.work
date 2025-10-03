@@ -1,0 +1,9 @@
+go 1.25
+
+use (
+	./jobfair-auth-service
+	./jobfair-company-service
+	./jobfair-job-service
+	./jobfair-shared-libs/go
+	./jobfair-user-profile-service
+)
