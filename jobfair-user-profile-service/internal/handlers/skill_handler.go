@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type SkillHandler struct {
@@ -30,7 +30,7 @@ func (h *SkillHandler) Create(c *gin.Context) {
 		return
 	}
 
-	skill, err := h.service.Create(userID.(uuid.UUID), &req)
+	skill, err := h.service.Create(userID.(uint), &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "CREATE_FAILED", nil))
 		return
@@ -52,7 +52,7 @@ func (h *SkillHandler) CreateBulk(c *gin.Context) {
 		return
 	}
 
-	skills, err := h.service.CreateBulk(userID.(uuid.UUID), &req)
+	skills, err := h.service.CreateBulk(userID.(uint), &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "CREATE_FAILED", nil))
 		return
@@ -68,7 +68,7 @@ func (h *SkillHandler) GetAll(c *gin.Context) {
 		return
 	}
 
-	skills, err := h.service.GetAll(userID.(uuid.UUID))
+	skills, err := h.service.GetAll(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error(), "FETCH_FAILED", nil))
 		return
@@ -84,13 +84,13 @@ func (h *SkillHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	id, err := uuid.Parse(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse("Invalid ID", "INVALID_ID", nil))
 		return
 	}
 
-	skill, err := h.service.GetByID(userID.(uuid.UUID), id)
+	skill, err := h.service.GetByID(userID.(uint), uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, models.ErrorResponse("Skill not found", "NOT_FOUND", nil))
 		return
@@ -106,7 +106,7 @@ func (h *SkillHandler) Update(c *gin.Context) {
 		return
 	}
 
-	id, err := uuid.Parse(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse("Invalid ID", "INVALID_ID", nil))
 		return
@@ -118,7 +118,7 @@ func (h *SkillHandler) Update(c *gin.Context) {
 		return
 	}
 
-	skill, err := h.service.Update(userID.(uuid.UUID), id, &req)
+	skill, err := h.service.Update(userID.(uint), uint(id), &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "UPDATE_FAILED", nil))
 		return
@@ -134,13 +134,13 @@ func (h *SkillHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	id, err := uuid.Parse(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse("Invalid ID", "INVALID_ID", nil))
 		return
 	}
 
-	err = h.service.Delete(userID.(uuid.UUID), id)
+	err = h.service.Delete(userID.(uint), uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "DELETE_FAILED", nil))
 		return

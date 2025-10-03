@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS position_preferences (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    profile_id UUID NOT NULL,
+    id SERIAL PRIMARY KEY,
+    profile_id INTEGER NOT NULL,
     position_name VARCHAR(255) NOT NULL,
     priority INT DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

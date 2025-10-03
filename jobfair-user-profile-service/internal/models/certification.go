@@ -2,13 +2,11 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Certification struct {
-	ID                uuid.UUID  `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	ProfileID         uuid.UUID  `gorm:"type:uuid;not null;index" json:"profile_id"`
+	ID                uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	ProfileID         uint       `gorm:"not null;index" json:"profile_id"`
 	CertificationName string     `gorm:"type:varchar(255);not null" json:"certification_name"`
 	Organizer         string     `gorm:"type:varchar(255);not null" json:"organizer"`
 	IssueDate         time.Time  `gorm:"type:date;not null" json:"issue_date"`

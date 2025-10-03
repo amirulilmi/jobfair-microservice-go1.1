@@ -4,17 +4,15 @@ import (
 	"errors"
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/repository"
-
-	"github.com/google/uuid"
 )
 
 type SkillService interface {
-	Create(userID uuid.UUID, req *models.SkillRequest) (*models.Skill, error)
-	CreateBulk(userID uuid.UUID, req *models.BulkSkillRequest) ([]models.Skill, error)
-	GetAll(userID uuid.UUID) ([]models.Skill, error)
-	GetByID(userID uuid.UUID, id uuid.UUID) (*models.Skill, error)
-	Update(userID uuid.UUID, id uuid.UUID, req *models.SkillRequest) (*models.Skill, error)
-	Delete(userID uuid.UUID, id uuid.UUID) error
+	Create(userID uint, req *models.SkillRequest) (*models.Skill, error)
+	CreateBulk(userID uint, req *models.BulkSkillRequest) ([]models.Skill, error)
+	GetAll(userID uint) ([]models.Skill, error)
+	GetByID(userID uint, id uint) (*models.Skill, error)
+	Update(userID uint, id uint, req *models.SkillRequest) (*models.Skill, error)
+	Delete(userID uint, id uint) error
 }
 
 type skillService struct {
@@ -29,7 +27,7 @@ func NewSkillService(repo repository.SkillRepository, profileService ProfileServ
 	}
 }
 
-func (s *skillService) Create(userID uuid.UUID, req *models.SkillRequest) (*models.Skill, error) {
+func (s *skillService) Create(userID uint, req *models.SkillRequest) (*models.Skill, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -52,7 +50,7 @@ func (s *skillService) Create(userID uuid.UUID, req *models.SkillRequest) (*mode
 	return skill, nil
 }
 
-func (s *skillService) CreateBulk(userID uuid.UUID, req *models.BulkSkillRequest) ([]models.Skill, error) {
+func (s *skillService) CreateBulk(userID uint, req *models.BulkSkillRequest) ([]models.Skill, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -94,7 +92,7 @@ func (s *skillService) CreateBulk(userID uuid.UUID, req *models.BulkSkillRequest
 	return skills, nil
 }
 
-func (s *skillService) GetAll(userID uuid.UUID) ([]models.Skill, error) {
+func (s *skillService) GetAll(userID uint) ([]models.Skill, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -103,7 +101,7 @@ func (s *skillService) GetAll(userID uuid.UUID) ([]models.Skill, error) {
 	return s.repo.GetByProfileID(profile.ID)
 }
 
-func (s *skillService) GetByID(userID uuid.UUID, id uuid.UUID) (*models.Skill, error) {
+func (s *skillService) GetByID(userID uint, id uint) (*models.Skill, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -121,7 +119,7 @@ func (s *skillService) GetByID(userID uuid.UUID, id uuid.UUID) (*models.Skill, e
 	return skill, nil
 }
 
-func (s *skillService) Update(userID uuid.UUID, id uuid.UUID, req *models.SkillRequest) (*models.Skill, error) {
+func (s *skillService) Update(userID uint, id uint, req *models.SkillRequest) (*models.Skill, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -149,7 +147,7 @@ func (s *skillService) Update(userID uuid.UUID, id uuid.UUID, req *models.SkillR
 	return skill, nil
 }
 
-func (s *skillService) Delete(userID uuid.UUID, id uuid.UUID) error {
+func (s *skillService) Delete(userID uint, id uint) error {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return errors.New("profile not found")

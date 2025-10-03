@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS educations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    profile_id UUID NOT NULL,
+    id SERIAL PRIMARY KEY,
+    profile_id INTEGER NOT NULL,
     university VARCHAR(255) NOT NULL,
     major VARCHAR(255) NOT NULL,
     degree VARCHAR(100),

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS certifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    profile_id UUID NOT NULL,
+    id SERIAL PRIMARY KEY,
+    profile_id INTEGER NOT NULL,
     certification_name VARCHAR(255) NOT NULL,
     organizer VARCHAR(255) NOT NULL,
     issue_date DATE NOT NULL,

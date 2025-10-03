@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS work_experiences (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    profile_id UUID NOT NULL,
+    id SERIAL PRIMARY KEY,
+    profile_id INTEGER NOT NULL,
     company_name VARCHAR(255) NOT NULL,
     job_position VARCHAR(255) NOT NULL,
     start_date DATE NOT NULL,

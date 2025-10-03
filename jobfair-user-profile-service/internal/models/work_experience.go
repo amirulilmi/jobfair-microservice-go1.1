@@ -2,13 +2,11 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type WorkExperience struct {
-	ID             uuid.UUID  `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	ProfileID      uuid.UUID  `gorm:"type:uuid;not null;index" json:"profile_id"`
+	ID             uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	ProfileID      uint       `gorm:"not null;index" json:"profile_id"`
 	CompanyName    string     `gorm:"type:varchar(255);not null" json:"company_name"`
 	JobPosition    string     `gorm:"type:varchar(255);not null" json:"job_position"`
 	StartDate      time.Time  `gorm:"type:date;not null" json:"start_date"`

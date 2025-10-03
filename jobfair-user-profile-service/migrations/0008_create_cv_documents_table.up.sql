@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS cv_documents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    profile_id UUID NOT NULL UNIQUE,
+    id SERIAL PRIMARY KEY,
+    profile_id INTEGER NOT NULL UNIQUE,
     file_name VARCHAR(255) NOT NULL,
     file_url VARCHAR(500) NOT NULL,
     file_size BIGINT NOT NULL,
@@ -13,4 +13,4 @@ CREATE TABLE IF NOT EXISTS cv_documents (
 );
 
 CREATE INDEX idx_cv_documents_profile_id ON cv_documents(profile_id);
-CREATE INDEX idx_cv_documents_is_verified ON cv_documents(is_verified);
+CREATE INDEX idx_cv_documents_uploaded_at ON cv_documents(uploaded_at);

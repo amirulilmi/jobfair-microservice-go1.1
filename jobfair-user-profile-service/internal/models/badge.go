@@ -2,12 +2,10 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Badge struct {
-	ID          uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	ID          uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	BadgeName   string    `gorm:"type:varchar(255);not null;uniqueIndex" json:"badge_name"`
 	Description string    `gorm:"type:text" json:"description"`
 	IconURL     string    `gorm:"type:varchar(500)" json:"icon_url"`
@@ -19,8 +17,8 @@ type Badge struct {
 }
 
 type ProfileBadge struct {
-	ProfileID uuid.UUID `gorm:"type:uuid;primaryKey" json:"profile_id"`
-	BadgeID   uuid.UUID `gorm:"type:uuid;primaryKey" json:"badge_id"`
+	ProfileID uint      `gorm:"primaryKey" json:"profile_id"`
+	BadgeID   uint      `gorm:"primaryKey" json:"badge_id"`
 	EarnedAt  time.Time `gorm:"type:timestamp;not null" json:"earned_at"`
 	Badge     Badge     `gorm:"foreignKey:BadgeID" json:"badge"`
 }

@@ -2,13 +2,11 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Education struct {
-	ID          uuid.UUID  `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	ProfileID   uuid.UUID  `gorm:"type:uuid;not null;index" json:"profile_id"`
+	ID          uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	ProfileID   uint       `gorm:"not null;index" json:"profile_id"`
 	University  string     `gorm:"type:varchar(255);not null" json:"university"`
 	Major       string     `gorm:"type:varchar(255);not null" json:"major"`
 	Degree      string     `gorm:"type:varchar(100)" json:"degree"` // Bachelor, Master, PhD, etc.

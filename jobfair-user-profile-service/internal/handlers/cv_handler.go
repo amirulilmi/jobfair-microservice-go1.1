@@ -6,7 +6,6 @@ import (
 	"jobfair-user-profile-service/internal/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type CVHandler struct {
@@ -30,7 +29,7 @@ func (h *CVHandler) Upload(c *gin.Context) {
 		return
 	}
 
-	cv, err := h.service.Upload(userID.(uuid.UUID), file)
+	cv, err := h.service.Upload(userID.(uint), file)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "UPLOAD_FAILED", nil))
 		return
@@ -46,7 +45,7 @@ func (h *CVHandler) Get(c *gin.Context) {
 		return
 	}
 
-	cv, err := h.service.Get(userID.(uuid.UUID))
+	cv, err := h.service.Get(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusNotFound, models.ErrorResponse("CV not found", "NOT_FOUND", nil))
 		return
@@ -62,7 +61,7 @@ func (h *CVHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	err := h.service.Delete(userID.(uuid.UUID))
+	err := h.service.Delete(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "DELETE_FAILED", nil))
 		return

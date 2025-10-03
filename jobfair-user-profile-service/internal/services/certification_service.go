@@ -4,16 +4,14 @@ import (
 	"errors"
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/repository"
-
-	"github.com/google/uuid"
 )
 
 type CertificationService interface {
-	Create(userID uuid.UUID, req *models.CertificationRequest) (*models.Certification, error)
-	GetAll(userID uuid.UUID) ([]models.Certification, error)
-	GetByID(userID uuid.UUID, id uuid.UUID) (*models.Certification, error)
-	Update(userID uuid.UUID, id uuid.UUID, req *models.CertificationRequest) (*models.Certification, error)
-	Delete(userID uuid.UUID, id uuid.UUID) error
+	Create(userID uint, req *models.CertificationRequest) (*models.Certification, error)
+	GetAll(userID uint) ([]models.Certification, error)
+	GetByID(userID uint, id uint) (*models.Certification, error)
+	Update(userID uint, id uint, req *models.CertificationRequest) (*models.Certification, error)
+	Delete(userID uint, id uint) error
 }
 
 type certificationService struct {
@@ -28,7 +26,7 @@ func NewCertificationService(repo repository.CertificationRepository, profileSer
 	}
 }
 
-func (s *certificationService) Create(userID uuid.UUID, req *models.CertificationRequest) (*models.Certification, error) {
+func (s *certificationService) Create(userID uint, req *models.CertificationRequest) (*models.Certification, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -54,7 +52,7 @@ func (s *certificationService) Create(userID uuid.UUID, req *models.Certificatio
 	return certification, nil
 }
 
-func (s *certificationService) GetAll(userID uuid.UUID) ([]models.Certification, error) {
+func (s *certificationService) GetAll(userID uint) ([]models.Certification, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -63,7 +61,7 @@ func (s *certificationService) GetAll(userID uuid.UUID) ([]models.Certification,
 	return s.repo.GetByProfileID(profile.ID)
 }
 
-func (s *certificationService) GetByID(userID uuid.UUID, id uuid.UUID) (*models.Certification, error) {
+func (s *certificationService) GetByID(userID uint, id uint) (*models.Certification, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -81,7 +79,7 @@ func (s *certificationService) GetByID(userID uuid.UUID, id uuid.UUID) (*models.
 	return certification, nil
 }
 
-func (s *certificationService) Update(userID uuid.UUID, id uuid.UUID, req *models.CertificationRequest) (*models.Certification, error) {
+func (s *certificationService) Update(userID uint, id uint, req *models.CertificationRequest) (*models.Certification, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -112,7 +110,7 @@ func (s *certificationService) Update(userID uuid.UUID, id uuid.UUID, req *model
 	return certification, nil
 }
 
-func (s *certificationService) Delete(userID uuid.UUID, id uuid.UUID) error {
+func (s *certificationService) Delete(userID uint, id uint) error {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return errors.New("profile not found")

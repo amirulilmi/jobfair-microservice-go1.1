@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type PreferenceHandler struct {
@@ -36,7 +36,7 @@ func (h *PreferenceHandler) CreateOrUpdateCareerPreference(c *gin.Context) {
 	preferredLocations := strings.Join(req.PreferredLocations, ",")
 
 	preference, err := h.service.CreateOrUpdateCareerPreference(
-		userID.(uuid.UUID),
+		userID.(uint),
 		req.IsActivelyLooking,
 		req.ExpectedSalaryMin,
 		req.ExpectedSalaryMax,
@@ -63,7 +63,7 @@ func (h *PreferenceHandler) GetCareerPreference(c *gin.Context) {
 		return
 	}
 
-	preference, err := h.service.GetCareerPreference(userID.(uuid.UUID))
+	preference, err := h.service.GetCareerPreference(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusNotFound, models.ErrorResponse("Career preference not found", "NOT_FOUND", nil))
 		return
@@ -85,7 +85,7 @@ func (h *PreferenceHandler) CreatePositionPreferences(c *gin.Context) {
 		return
 	}
 
-	preferences, err := h.service.CreatePositionPreferences(userID.(uuid.UUID), req.Positions)
+	preferences, err := h.service.CreatePositionPreferences(userID.(uint), req.Positions)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "CREATE_FAILED", nil))
 		return
@@ -101,7 +101,7 @@ func (h *PreferenceHandler) GetPositionPreferences(c *gin.Context) {
 		return
 	}
 
-	preferences, err := h.service.GetPositionPreferences(userID.(uuid.UUID))
+	preferences, err := h.service.GetPositionPreferences(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error(), "FETCH_FAILED", nil))
 		return
@@ -117,13 +117,13 @@ func (h *PreferenceHandler) DeletePositionPreference(c *gin.Context) {
 		return
 	}
 
-	id, err := uuid.Parse(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse("Invalid ID", "INVALID_ID", nil))
 		return
 	}
 
-	err = h.service.DeletePositionPreference(userID.(uuid.UUID), id)
+	err = h.service.DeletePositionPreference(userID.(uint), uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "DELETE_FAILED", nil))
 		return

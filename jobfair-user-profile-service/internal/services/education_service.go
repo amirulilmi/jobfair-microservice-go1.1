@@ -4,16 +4,14 @@ import (
 	"errors"
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/repository"
-
-	"github.com/google/uuid"
 )
 
 type EducationService interface {
-	Create(userID uuid.UUID, req *models.EducationRequest) (*models.Education, error)
-	GetAll(userID uuid.UUID) ([]models.Education, error)
-	GetByID(userID uuid.UUID, id uuid.UUID) (*models.Education, error)
-	Update(userID uuid.UUID, id uuid.UUID, req *models.EducationRequest) (*models.Education, error)
-	Delete(userID uuid.UUID, id uuid.UUID) error
+	Create(userID uint, req *models.EducationRequest) (*models.Education, error)
+	GetAll(userID uint) ([]models.Education, error)
+	GetByID(userID uint, id uint) (*models.Education, error)
+	Update(userID uint, id uint, req *models.EducationRequest) (*models.Education, error)
+	Delete(userID uint, id uint) error
 }
 
 type educationService struct {
@@ -28,7 +26,7 @@ func NewEducationService(repo repository.EducationRepository, profileService Pro
 	}
 }
 
-func (s *educationService) Create(userID uuid.UUID, req *models.EducationRequest) (*models.Education, error) {
+func (s *educationService) Create(userID uint, req *models.EducationRequest) (*models.Education, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -55,7 +53,7 @@ func (s *educationService) Create(userID uuid.UUID, req *models.EducationRequest
 	return education, nil
 }
 
-func (s *educationService) GetAll(userID uuid.UUID) ([]models.Education, error) {
+func (s *educationService) GetAll(userID uint) ([]models.Education, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -64,7 +62,7 @@ func (s *educationService) GetAll(userID uuid.UUID) ([]models.Education, error) 
 	return s.repo.GetByProfileID(profile.ID)
 }
 
-func (s *educationService) GetByID(userID uuid.UUID, id uuid.UUID) (*models.Education, error) {
+func (s *educationService) GetByID(userID uint, id uint) (*models.Education, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -82,7 +80,7 @@ func (s *educationService) GetByID(userID uuid.UUID, id uuid.UUID) (*models.Educ
 	return education, nil
 }
 
-func (s *educationService) Update(userID uuid.UUID, id uuid.UUID, req *models.EducationRequest) (*models.Education, error) {
+func (s *educationService) Update(userID uint, id uint, req *models.EducationRequest) (*models.Education, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -114,7 +112,7 @@ func (s *educationService) Update(userID uuid.UUID, id uuid.UUID, req *models.Ed
 	return education, nil
 }
 
-func (s *educationService) Delete(userID uuid.UUID, id uuid.UUID) error {
+func (s *educationService) Delete(userID uint, id uint) error {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return errors.New("profile not found")

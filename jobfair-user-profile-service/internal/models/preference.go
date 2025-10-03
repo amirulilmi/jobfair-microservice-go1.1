@@ -2,29 +2,27 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type CareerPreference struct {
-	ID                 uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	ProfileID          uuid.UUID `gorm:"type:uuid;not null;uniqueIndex" json:"profile_id"`
-	IsActivelyLooking  bool      `gorm:"type:boolean;default:false" json:"is_actively_looking"`
-	ExpectedSalaryMin  *int      `gorm:"type:int" json:"expected_salary_min"`
-	ExpectedSalaryMax  *int      `gorm:"type:int" json:"expected_salary_max"`
-	SalaryCurrency     string    `gorm:"type:varchar(10);default:'IDR'" json:"salary_currency"`
-	IsNegotiable       bool      `gorm:"type:boolean;default:true" json:"is_negotiable"`
-	PreferredWorkTypes string    `gorm:"type:varchar(255)" json:"preferred_work_types"` // onsite,remote,hybrid (comma-separated)
-	PreferredLocations string    `gorm:"type:text" json:"preferred_locations"`          // comma-separated cities
-	WillingToRelocate  bool      `gorm:"type:boolean;default:false" json:"willing_to_relocate"`
+	ID                 uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	ProfileID          uint       `gorm:"not null;uniqueIndex" json:"profile_id"`
+	IsActivelyLooking  bool       `gorm:"type:boolean;default:false" json:"is_actively_looking"`
+	ExpectedSalaryMin  *int       `gorm:"type:int" json:"expected_salary_min"`
+	ExpectedSalaryMax  *int       `gorm:"type:int" json:"expected_salary_max"`
+	SalaryCurrency     string     `gorm:"type:varchar(10);default:'IDR'" json:"salary_currency"`
+	IsNegotiable       bool       `gorm:"type:boolean;default:true" json:"is_negotiable"`
+	PreferredWorkTypes string     `gorm:"type:varchar(255)" json:"preferred_work_types"` // onsite,remote,hybrid (comma-separated)
+	PreferredLocations string     `gorm:"type:text" json:"preferred_locations"`          // comma-separated cities
+	WillingToRelocate  bool       `gorm:"type:boolean;default:false" json:"willing_to_relocate"`
 	AvailableStartDate *time.Time `gorm:"type:date" json:"available_start_date"`
-	CreatedAt          time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt          time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedAt          time.Time  `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt          time.Time  `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
 type PositionPreference struct {
-	ID           uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	ProfileID    uuid.UUID `gorm:"type:uuid;not null;index" json:"profile_id"`
+	ID           uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	ProfileID    uint      `gorm:"not null;index" json:"profile_id"`
 	PositionName string    `gorm:"type:varchar(255);not null" json:"position_name"`
 	Priority     int       `gorm:"type:int;default:1" json:"priority"` // 1 = highest priority
 	CreatedAt    time.Time `gorm:"autoCreateTime" json:"created_at"`

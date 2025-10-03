@@ -6,7 +6,6 @@ import (
 	"jobfair-user-profile-service/internal/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type ProfileHandler struct {
@@ -34,7 +33,7 @@ func (h *ProfileHandler) CreateProfile(c *gin.Context) {
 		return
 	}
 
-	profile, err := h.service.CreateProfile(userID.(uuid.UUID), req.FullName, req.PhoneNumber)
+	profile, err := h.service.CreateProfile(userID.(uint), req.FullName, req.PhoneNumber)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "CREATE_FAILED", nil))
 		return
@@ -50,7 +49,7 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 		return
 	}
 
-	profile, err := h.service.GetProfile(userID.(uuid.UUID))
+	profile, err := h.service.GetProfile(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusNotFound, models.ErrorResponse("Profile not found", "NOT_FOUND", nil))
 		return
@@ -66,7 +65,7 @@ func (h *ProfileHandler) GetProfileWithRelations(c *gin.Context) {
 		return
 	}
 
-	profile, err := h.service.GetProfileWithRelations(userID.(uuid.UUID))
+	profile, err := h.service.GetProfileWithRelations(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusNotFound, models.ErrorResponse("Profile not found", "NOT_FOUND", nil))
 		return
@@ -88,7 +87,7 @@ func (h *ProfileHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	profile, err := h.service.UpdateProfile(userID.(uuid.UUID), &req)
+	profile, err := h.service.UpdateProfile(userID.(uint), &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "UPDATE_FAILED", nil))
 		return
@@ -104,7 +103,7 @@ func (h *ProfileHandler) GetCompletionStatus(c *gin.Context) {
 		return
 	}
 
-	profile, err := h.service.GetProfile(userID.(uuid.UUID))
+	profile, err := h.service.GetProfile(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusNotFound, models.ErrorResponse("Profile not found", "NOT_FOUND", nil))
 		return

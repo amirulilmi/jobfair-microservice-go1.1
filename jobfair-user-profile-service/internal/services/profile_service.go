@@ -5,27 +5,26 @@ import (
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/repository"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ProfileService interface {
-	CreateProfile(userID uuid.UUID, fullName, phoneNumber string) (*models.Profile, error)
-	GetProfile(userID uuid.UUID) (*models.Profile, error)
-	GetProfileWithRelations(userID uuid.UUID) (*models.Profile, error)
-	UpdateProfile(userID uuid.UUID, req *models.ProfileUpdateRequest) (*models.Profile, error)
+	CreateProfile(userID uint, fullName, phoneNumber string) (*models.Profile, error)
+	GetProfile(userID uint) (*models.Profile, error)
+	GetProfileWithRelations(userID uint) (*models.Profile, error)
+	UpdateProfile(userID uint, req *models.ProfileUpdateRequest) (*models.Profile, error)
 	CalculateCompletionStatus(profile *models.Profile) int
-	UpdateCompletionStatus(userID uuid.UUID) error
+	UpdateCompletionStatus(userID uint) error
 }
 
 type profileService struct {
-	profileRepo         repository.ProfileRepository
-	workExpRepo         repository.WorkExperienceRepository
-	educationRepo       repository.EducationRepository
-	certificationRepo   repository.CertificationRepository
-	skillRepo           repository.SkillRepository
-	preferenceRepo      repository.PreferenceRepository
-	cvRepo              repository.CVRepository
+	profileRepo       repository.ProfileRepository
+	workExpRepo       repository.WorkExperienceRepository
+	educationRepo     repository.EducationRepository
+	certificationRepo repository.CertificationRepository
+	skillRepo         repository.SkillRepository
+	preferenceRepo    repository.PreferenceRepository
+	cvRepo            repository.CVRepository
 }
 
 func NewProfileService(
@@ -48,7 +47,7 @@ func NewProfileService(
 	}
 }
 
-func (s *profileService) CreateProfile(userID uuid.UUID, fullName, phoneNumber string) (*models.Profile, error) {
+func (s *profileService) CreateProfile(userID uint, fullName, phoneNumber string) (*models.Profile, error) {
 	profile := &models.Profile{
 		UserID:           userID,
 		FullName:         fullName,
@@ -64,7 +63,7 @@ func (s *profileService) CreateProfile(userID uuid.UUID, fullName, phoneNumber s
 	return profile, nil
 }
 
-func (s *profileService) GetProfile(userID uuid.UUID) (*models.Profile, error) {
+func (s *profileService) GetProfile(userID uint) (*models.Profile, error) {
 	profile, err := s.profileRepo.GetByUserID(userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -75,7 +74,7 @@ func (s *profileService) GetProfile(userID uuid.UUID) (*models.Profile, error) {
 	return profile, nil
 }
 
-func (s *profileService) GetProfileWithRelations(userID uuid.UUID) (*models.Profile, error) {
+func (s *profileService) GetProfileWithRelations(userID uint) (*models.Profile, error) {
 	profile, err := s.profileRepo.GetWithRelations(userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -86,7 +85,7 @@ func (s *profileService) GetProfileWithRelations(userID uuid.UUID) (*models.Prof
 	return profile, nil
 }
 
-func (s *profileService) UpdateProfile(userID uuid.UUID, req *models.ProfileUpdateRequest) (*models.Profile, error) {
+func (s *profileService) UpdateProfile(userID uint, req *models.ProfileUpdateRequest) (*models.Profile, error) {
 	profile, err := s.profileRepo.GetByUserID(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -198,7 +197,7 @@ func (s *profileService) CalculateCompletionStatus(profile *models.Profile) int 
 
 	// Career preference (1 field)
 	careerPref, _ := s.preferenceRepo.GetCareerPreferenceByProfileID(profile.ID)
-	if careerPref != nil && careerPref.ID != uuid.Nil {
+	if careerPref != nil && careerPref.ID != 0 {
 		completedFields++
 	}
 
@@ -210,7 +209,7 @@ func (s *profileService) CalculateCompletionStatus(profile *models.Profile) int 
 
 	// CV Document (1 field)
 	cv, _ := s.cvRepo.GetByProfileID(profile.ID)
-	if cv != nil && cv.ID != uuid.Nil {
+	if cv != nil && cv.ID != 0 {
 		completedFields++
 	}
 
@@ -229,7 +228,7 @@ func (s *profileService) CalculateCompletionStatus(profile *models.Profile) int 
 	return completionPercentage
 }
 
-func (s *profileService) UpdateCompletionStatus(userID uuid.UUID) error {
+func (s *profileService) UpdateCompletionStatus(userID uint) error {
 	profile, err := s.profileRepo.GetByUserID(userID)
 	if err != nil {
 		return err

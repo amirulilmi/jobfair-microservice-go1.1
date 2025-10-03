@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS career_preferences (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    profile_id UUID NOT NULL UNIQUE,
+    id SERIAL PRIMARY KEY,
+    profile_id INTEGER NOT NULL UNIQUE,
     is_actively_looking BOOLEAN DEFAULT FALSE,
     expected_salary_min INT,
     expected_salary_max INT,

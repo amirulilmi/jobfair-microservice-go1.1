@@ -5,16 +5,14 @@ import (
 	"time"
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/repository"
-
-	"github.com/google/uuid"
 )
 
 type PreferenceService interface {
-	CreateOrUpdateCareerPreference(userID uuid.UUID, isActivelyLooking bool, salaryMin, salaryMax *int, currency string, isNegotiable bool, workTypes, locations string, relocate bool, startDate *time.Time) (*models.CareerPreference, error)
-	GetCareerPreference(userID uuid.UUID) (*models.CareerPreference, error)
-	CreatePositionPreferences(userID uuid.UUID, positions []models.PositionPreferenceRequest) ([]models.PositionPreference, error)
-	GetPositionPreferences(userID uuid.UUID) ([]models.PositionPreference, error)
-	DeletePositionPreference(userID uuid.UUID, id uuid.UUID) error
+	CreateOrUpdateCareerPreference(userID uint, isActivelyLooking bool, salaryMin, salaryMax *int, currency string, isNegotiable bool, workTypes, locations string, relocate bool, startDate *time.Time) (*models.CareerPreference, error)
+	GetCareerPreference(userID uint) (*models.CareerPreference, error)
+	CreatePositionPreferences(userID uint, positions []models.PositionPreferenceRequest) ([]models.PositionPreference, error)
+	GetPositionPreferences(userID uint) ([]models.PositionPreference, error)
+	DeletePositionPreference(userID uint, id uint) error
 }
 
 type preferenceService struct {
@@ -29,7 +27,7 @@ func NewPreferenceService(repo repository.PreferenceRepository, profileService P
 	}
 }
 
-func (s *preferenceService) CreateOrUpdateCareerPreference(userID uuid.UUID, isActivelyLooking bool, salaryMin, salaryMax *int, currency string, isNegotiable bool, workTypes, locations string, relocate bool, startDate *time.Time) (*models.CareerPreference, error) {
+func (s *preferenceService) CreateOrUpdateCareerPreference(userID uint, isActivelyLooking bool, salaryMin, salaryMax *int, currency string, isNegotiable bool, workTypes, locations string, relocate bool, startDate *time.Time) (*models.CareerPreference, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -82,7 +80,7 @@ func (s *preferenceService) CreateOrUpdateCareerPreference(userID uuid.UUID, isA
 	return preference, nil
 }
 
-func (s *preferenceService) GetCareerPreference(userID uuid.UUID) (*models.CareerPreference, error) {
+func (s *preferenceService) GetCareerPreference(userID uint) (*models.CareerPreference, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -96,7 +94,7 @@ func (s *preferenceService) GetCareerPreference(userID uuid.UUID) (*models.Caree
 	return preference, nil
 }
 
-func (s *preferenceService) CreatePositionPreferences(userID uuid.UUID, positions []models.PositionPreferenceRequest) ([]models.PositionPreference, error) {
+func (s *preferenceService) CreatePositionPreferences(userID uint, positions []models.PositionPreferenceRequest) ([]models.PositionPreference, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -126,7 +124,7 @@ func (s *preferenceService) CreatePositionPreferences(userID uuid.UUID, position
 	return preferences, nil
 }
 
-func (s *preferenceService) GetPositionPreferences(userID uuid.UUID) ([]models.PositionPreference, error) {
+func (s *preferenceService) GetPositionPreferences(userID uint) ([]models.PositionPreference, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -135,7 +133,7 @@ func (s *preferenceService) GetPositionPreferences(userID uuid.UUID) ([]models.P
 	return s.repo.GetPositionPreferencesByProfileID(profile.ID)
 }
 
-func (s *preferenceService) DeletePositionPreference(userID uuid.UUID, id uuid.UUID) error {
+func (s *preferenceService) DeletePositionPreference(userID uint, id uint) error {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return errors.New("profile not found")

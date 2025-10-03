@@ -4,16 +4,14 @@ import (
 	"errors"
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/repository"
-
-	"github.com/google/uuid"
 )
 
 type WorkExperienceService interface {
-	Create(userID uuid.UUID, req *models.WorkExperienceRequest) (*models.WorkExperience, error)
-	GetAll(userID uuid.UUID) ([]models.WorkExperience, error)
-	GetByID(userID uuid.UUID, id uuid.UUID) (*models.WorkExperience, error)
-	Update(userID uuid.UUID, id uuid.UUID, req *models.WorkExperienceRequest) (*models.WorkExperience, error)
-	Delete(userID uuid.UUID, id uuid.UUID) error
+	Create(userID uint, req *models.WorkExperienceRequest) (*models.WorkExperience, error)
+	GetAll(userID uint) ([]models.WorkExperience, error)
+	GetByID(userID uint, id uint) (*models.WorkExperience, error)
+	Update(userID uint, id uint, req *models.WorkExperienceRequest) (*models.WorkExperience, error)
+	Delete(userID uint, id uint) error
 }
 
 type workExperienceService struct {
@@ -31,7 +29,7 @@ func NewWorkExperienceService(
 	}
 }
 
-func (s *workExperienceService) Create(userID uuid.UUID, req *models.WorkExperienceRequest) (*models.WorkExperience, error) {
+func (s *workExperienceService) Create(userID uint, req *models.WorkExperienceRequest) (*models.WorkExperience, error) {
 	// Get profile first to ensure it exists and get profile ID
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
@@ -59,7 +57,7 @@ func (s *workExperienceService) Create(userID uuid.UUID, req *models.WorkExperie
 	return workExp, nil
 }
 
-func (s *workExperienceService) GetAll(userID uuid.UUID) ([]models.WorkExperience, error) {
+func (s *workExperienceService) GetAll(userID uint) ([]models.WorkExperience, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -68,7 +66,7 @@ func (s *workExperienceService) GetAll(userID uuid.UUID) ([]models.WorkExperienc
 	return s.workExpRepo.GetByProfileID(profile.ID)
 }
 
-func (s *workExperienceService) GetByID(userID uuid.UUID, id uuid.UUID) (*models.WorkExperience, error) {
+func (s *workExperienceService) GetByID(userID uint, id uint) (*models.WorkExperience, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -87,7 +85,7 @@ func (s *workExperienceService) GetByID(userID uuid.UUID, id uuid.UUID) (*models
 	return workExp, nil
 }
 
-func (s *workExperienceService) Update(userID uuid.UUID, id uuid.UUID, req *models.WorkExperienceRequest) (*models.WorkExperience, error) {
+func (s *workExperienceService) Update(userID uint, id uint, req *models.WorkExperienceRequest) (*models.WorkExperience, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -119,7 +117,7 @@ func (s *workExperienceService) Update(userID uuid.UUID, id uuid.UUID, req *mode
 	return workExp, nil
 }
 
-func (s *workExperienceService) Delete(userID uuid.UUID, id uuid.UUID) error {
+func (s *workExperienceService) Delete(userID uint, id uint) error {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return errors.New("profile not found")

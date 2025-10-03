@@ -12,14 +12,12 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type CVService interface {
-	Upload(userID uuid.UUID, file *multipart.FileHeader) (*models.CVDocument, error)
-	Get(userID uuid.UUID) (*models.CVDocument, error)
-	Delete(userID uuid.UUID) error
+	Upload(userID uint, file *multipart.FileHeader) (*models.CVDocument, error)
+	Get(userID uint) (*models.CVDocument, error)
+	Delete(userID uint) error
 }
 
 type cvService struct {
@@ -36,7 +34,7 @@ func NewCVService(repo repository.CVRepository, profileService ProfileService, c
 	}
 }
 
-func (s *cvService) Upload(userID uuid.UUID, file *multipart.FileHeader) (*models.CVDocument, error) {
+func (s *cvService) Upload(userID uint, file *multipart.FileHeader) (*models.CVDocument, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -59,7 +57,7 @@ func (s *cvService) Upload(userID uuid.UUID, file *multipart.FileHeader) (*model
 	}
 
 	// Generate unique filename
-	filename := fmt.Sprintf("%s_%d%s", profile.ID.String(), time.Now().Unix(), ext)
+	filename := fmt.Sprintf("%d_%d%s", profile.ID, time.Now().Unix(), ext)
 	filePath := filepath.Join(s.config.UploadDir, filename)
 
 	// Save file
@@ -92,7 +90,7 @@ func (s *cvService) Upload(userID uuid.UUID, file *multipart.FileHeader) (*model
 		UploadedAt: time.Now(),
 	}
 
-	if existing != nil && existing.ID != uuid.Nil {
+	if existing != nil && existing.ID != 0 {
 		// Update existing CV
 		cvDoc.ID = existing.ID
 
@@ -117,7 +115,7 @@ func (s *cvService) Upload(userID uuid.UUID, file *multipart.FileHeader) (*model
 	return cvDoc, nil
 }
 
-func (s *cvService) Get(userID uuid.UUID) (*models.CVDocument, error) {
+func (s *cvService) Get(userID uint) (*models.CVDocument, error) {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return nil, errors.New("profile not found")
@@ -130,7 +128,7 @@ func (s *cvService) Get(userID uuid.UUID) (*models.CVDocument, error) {
 	return cv, nil
 }
 
-func (s *cvService) Delete(userID uuid.UUID) error {
+func (s *cvService) Delete(userID uint) error {
 	profile, err := s.profileService.GetProfile(userID)
 	if err != nil {
 		return errors.New("profile not found")

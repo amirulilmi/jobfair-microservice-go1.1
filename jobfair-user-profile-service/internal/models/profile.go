@@ -2,13 +2,11 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Profile struct {
-	ID                uuid.UUID  `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	UserID            uuid.UUID  `gorm:"type:uuid;not null;uniqueIndex" json:"user_id"`
+	ID                uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID            uint       `gorm:"not null;uniqueIndex" json:"user_id"`
 	FullName          string     `gorm:"type:varchar(255)" json:"full_name"`
 	PhoneNumber       string     `gorm:"type:varchar(20)" json:"phone_number"`
 	Bio               string     `gorm:"type:text" json:"bio"`

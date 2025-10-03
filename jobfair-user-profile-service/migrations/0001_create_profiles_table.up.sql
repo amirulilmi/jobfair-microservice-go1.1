@@ -1,8 +1,6 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 CREATE TABLE IF NOT EXISTS profiles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL UNIQUE,
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL UNIQUE,
     full_name VARCHAR(255),
     phone_number VARCHAR(20),
     bio TEXT,

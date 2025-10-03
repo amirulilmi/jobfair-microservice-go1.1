@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type WorkExperienceHandler struct {
@@ -30,7 +30,7 @@ func (h *WorkExperienceHandler) Create(c *gin.Context) {
 		return
 	}
 
-	workExp, err := h.service.Create(userID.(uuid.UUID), &req)
+	workExp, err := h.service.Create(userID.(uint), &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "CREATE_FAILED", nil))
 		return
@@ -46,7 +46,7 @@ func (h *WorkExperienceHandler) GetAll(c *gin.Context) {
 		return
 	}
 
-	workExps, err := h.service.GetAll(userID.(uuid.UUID))
+	workExps, err := h.service.GetAll(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error(), "FETCH_FAILED", nil))
 		return
@@ -62,13 +62,13 @@ func (h *WorkExperienceHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	id, err := uuid.Parse(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse("Invalid ID", "INVALID_ID", nil))
 		return
 	}
 
-	workExp, err := h.service.GetByID(userID.(uuid.UUID), id)
+	workExp, err := h.service.GetByID(userID.(uint), uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, models.ErrorResponse("Work experience not found", "NOT_FOUND", nil))
 		return
@@ -84,7 +84,7 @@ func (h *WorkExperienceHandler) Update(c *gin.Context) {
 		return
 	}
 
-	id, err := uuid.Parse(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse("Invalid ID", "INVALID_ID", nil))
 		return
@@ -96,7 +96,7 @@ func (h *WorkExperienceHandler) Update(c *gin.Context) {
 		return
 	}
 
-	workExp, err := h.service.Update(userID.(uuid.UUID), id, &req)
+	workExp, err := h.service.Update(userID.(uint), uint(id), &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "UPDATE_FAILED", nil))
 		return
@@ -112,13 +112,13 @@ func (h *WorkExperienceHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	id, err := uuid.Parse(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse("Invalid ID", "INVALID_ID", nil))
 		return
 	}
 
-	err = h.service.Delete(userID.(uuid.UUID), id)
+	err = h.service.Delete(userID.(uint), uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse(err.Error(), "DELETE_FAILED", nil))
 		return
