@@ -50,6 +50,7 @@ func main() {
 	// Initialize handlers
 	jobHandler := handlers.NewJobHandler(jobService)
 	applicationHandler := handlers.NewApplicationHandler(applicationService)
+	adminHandler := handlers.NewAdminHandler(companyRepo, jobService)
 
 	// Initialize and start event consumer
 	companyConsumer, err := consumers.NewCompanyEventConsumer(cfg.RabbitMQURL, companyRepo)
@@ -141,6 +142,18 @@ func main() {
 
 			// Applications by job (company only)
 			protected.GET("/jobs/:id/applications", applicationHandler.GetApplicationsByJobID)
+		}
+
+		// Admin routes (admin only)
+		admin := api.Group("/admin")
+		admin.Use(jwtMiddleware)
+		{
+			// Company mapping management
+			admin.POST("/sync-company-mapping", adminHandler.SyncCompanyMapping)
+			admin.GET("/company-mappings", adminHandler.GetCompanyMappings)
+			
+			// Health checks
+			admin.GET("/health/data-consistency", adminHandler.HealthCheckDataConsistency)
 		}
 	}
 

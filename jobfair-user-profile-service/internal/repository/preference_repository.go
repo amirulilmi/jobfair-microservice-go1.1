@@ -36,7 +36,10 @@ func (r *preferenceRepository) CreateCareerPreference(pref *models.CareerPrefere
 func (r *preferenceRepository) GetCareerPreferenceByProfileID(profileID uint) (*models.CareerPreference, error) {
 	var pref models.CareerPreference
 	err := r.db.Where("profile_id = ?", profileID).First(&pref).Error
-	return &pref, err
+	if err != nil {
+		return nil, err  // ✅ Return nil on error!
+	}
+	return &pref, nil
 }
 
 func (r *preferenceRepository) UpdateCareerPreference(pref *models.CareerPreference) error {

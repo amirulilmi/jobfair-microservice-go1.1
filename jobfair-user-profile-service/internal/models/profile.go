@@ -7,6 +7,8 @@ import (
 type Profile struct {
 	ID                uint       `gorm:"primaryKey;autoIncrement" json:"id"`
 	UserID            uint       `gorm:"not null;uniqueIndex" json:"user_id"`
+	FirstName         string     `gorm:"type:varchar(100)" json:"first_name"`
+	LastName          string     `gorm:"type:varchar(100)" json:"last_name"`
 	FullName          string     `gorm:"type:varchar(255)" json:"full_name"`
 	PhoneNumber       string     `gorm:"type:varchar(20)" json:"phone_number"`
 	Headline          string     `gorm:"type:varchar(255)" json:"headline"`
@@ -23,7 +25,7 @@ type Profile struct {
 	Country           string     `gorm:"type:varchar(100);default:'Indonesia'" json:"country"`
 	PostalCode        string     `gorm:"type:varchar(10)" json:"postal_code"`
 	LinkedInURL       string     `gorm:"column:linkedin_url;type:varchar(255)" json:"linkedin_url"`
-	GitHubURL         string     `gorm:"type:varchar(255)" json:"github_url"`
+	GitHubURL         string     `gorm:"column:github_url;type:varchar(255)" json:"github_url"`
 	PortfolioURL      string     `gorm:"type:varchar(255)" json:"portfolio_url"`
 	CompletionStatus  int        `gorm:"type:int;default:0" json:"completion_status"` // 0-100%
 	CreatedAt         time.Time  `gorm:"autoCreateTime" json:"created_at"`
@@ -41,6 +43,8 @@ type Profile struct {
 }
 
 type ProfileUpdateRequest struct {
+	FirstName         *string    `json:"first_name"`
+	LastName          *string    `json:"last_name"`
 	FullName          *string    `json:"full_name"`
 	PhoneNumber       *string    `json:"phone_number"`
 	Headline          *string    `json:"headline"`

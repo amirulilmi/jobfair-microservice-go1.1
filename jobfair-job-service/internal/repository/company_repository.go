@@ -62,3 +62,8 @@ func (r *CompanyRepository) DeleteMappingByUserID(userID uint) error {
 	return r.db.Where("user_id = ?", userID).
 		Delete(&CompanyMapping{}).Error
 }
+
+// GetDB returns the database instance (for admin queries)
+func (r *CompanyRepository) GetDB() *gorm.DB {
+	return r.db
+}

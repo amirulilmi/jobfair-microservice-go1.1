@@ -5,7 +5,6 @@ import (
 	"jobfair-user-profile-service/internal/consumers"
 	"jobfair-user-profile-service/internal/handlers"
 	"jobfair-user-profile-service/internal/middleware"
-	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/repository"
 	"jobfair-user-profile-service/internal/services"
 	"jobfair-user-profile-service/pkg/database"
@@ -29,20 +28,20 @@ func main() {
 	log.Println("✅ Database connected successfully")
 
 	// Auto-migrate models
-	if err := db.AutoMigrate(
-		&models.Profile{},
-		&models.WorkExperience{},
-		&models.Education{},
-		&models.Certification{},
-		&models.Skill{},
-		&models.CareerPreference{},
-		&models.PositionPreference{},
-		&models.CVDocument{},
-		&models.Badge{},
-	); err != nil {
-		log.Fatalf("❌ Failed to migrate database: %v", err)
-	}
-	log.Println("✅ Database migrated successfully")
+	// if err := db.AutoMigrate(
+	// 	&models.Profile{},
+	// 	&models.WorkExperience{},
+	// 	&models.Education{},
+	// 	&models.Certification{},
+	// 	&models.Skill{},
+	// 	&models.CareerPreference{},
+	// 	&models.PositionPreference{},
+	// 	&models.CVDocument{},
+	// 	&models.Badge{},
+	// ); err != nil {
+	// 	log.Fatalf("❌ Failed to migrate database: %v", err)
+	// }
+	// log.Println("✅ Database migrated successfully")
 
 	// Initialize repositories
 	profileRepo := repository.NewProfileRepository(db)
@@ -93,7 +92,7 @@ func main() {
 
 	// Initialize Gin router
 	router := gin.Default()
-	
+
 	// Disable automatic trailing slash redirect to prevent 301 loops
 	router.RedirectTrailingSlash = false
 

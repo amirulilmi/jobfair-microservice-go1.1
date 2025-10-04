@@ -33,6 +33,19 @@ func (s *preferenceService) CreateOrUpdateCareerPreference(userID uint, req *mod
 	if err != nil {
 		return nil, errors.New("failed to get or create profile: " + err.Error())
 	}
+	
+	// CRITICAL: Force reload to ensure ID is populated correctly
+	log.Printf("[CreateCareerPreference] Before reload - Profile: ID=%d, UserID=%d", profile.ID, profile.UserID)
+	profile, err = s.profileService.GetProfile(userID)
+	if err != nil {
+		return nil, errors.New("failed to reload profile: " + err.Error())
+	}
+	log.Printf("[CreateCareerPreference] After reload - Profile: ID=%d, UserID=%d", profile.ID, profile.UserID)
+	
+	if profile.ID == 0 {
+		log.Printf("[CreateCareerPreference] ERROR: Profile ID is 0 after reload for userID=%d", userID)
+		return nil, errors.New("profile ID is invalid (0)")
+	}
 
 	log.Printf("[CreateCareerPreference] Got profile: ID=%d, UserID=%d", profile.ID, profile.UserID)
 
@@ -85,8 +98,15 @@ func (s *preferenceService) CreateOrUpdateCareerPreference(userID uint, req *mod
 		AvailableStartDate: *req.AvailableFrom.ToTime(),
 	}
 
-	log.Printf("[CreateCareerPreference] About to insert: ProfileID=%d, Salary=%d-%d", 
+	log.Printf("[CreateCareerPreference] About to insert preference with: ProfileID=%d, Salary=%d-%d", 
 		preference.ProfileID, preference.ExpectedSalaryMin, preference.ExpectedSalaryMax)
+	
+	// Double check ProfileID is not 0
+	if preference.ProfileID == 0 {
+		log.Printf("[CreateCareerPreference] CRITICAL ERROR: ProfileID is 0 in preference object!")
+		log.Printf("[CreateCareerPreference] Original profile.ID was: %d", profile.ID)
+		return nil, errors.New("cannot create career preference with ProfileID=0")
+	}
 
 	err = s.repo.CreateCareerPreference(preference)
 	if err != nil {
@@ -118,6 +138,11 @@ func (s *preferenceService) CreatePositionPreferences(userID uint, positions []s
 	profile, err := s.profileService.GetOrCreateProfile(userID)
 	if err != nil {
 		return nil, errors.New("failed to get or create profile: " + err.Error())
+	}
+	
+	if profile.ID == 0 {
+		log.Printf("[CreatePositionPreferences] ERROR: Profile ID is 0 after GetOrCreate for userID=%d", userID)
+		return nil, errors.New("profile creation failed: profile ID is 0")
 	}
 
 	// Delete existing preferences

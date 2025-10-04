@@ -105,17 +105,23 @@ func (s *profileService) GetOrCreateProfile(userID uint) (*models.Profile, error
 			return nil, err
 		}
 		
-		log.Printf("[GetOrCreateProfile] Profile created, ID after Create: %d", newProfile.ID)
-
-		// Reload from DB to ensure ID is populated
-		profile, err = s.profileRepo.GetByUserID(userID)
-		if err != nil {
-			log.Printf("[GetOrCreateProfile] Failed to reload profile: %v", err)
-			return nil, err
+		// GORM should auto-populate the ID after Create
+		log.Printf("[GetOrCreateProfile] Profile created with ID=%d", newProfile.ID)
+		
+		// Verify ID is set
+		if newProfile.ID == 0 {
+			log.Printf("[GetOrCreateProfile] WARNING: ID is 0 after create, reloading from DB")
+			// Reload from DB to ensure ID is populated
+			profile, err = s.profileRepo.GetByUserID(userID)
+			if err != nil {
+				log.Printf("[GetOrCreateProfile] Failed to reload profile: %v", err)
+				return nil, err
+			}
+			log.Printf("[GetOrCreateProfile] Profile reloaded: ID=%d", profile.ID)
+			return profile, nil
 		}
 		
-		log.Printf("[GetOrCreateProfile] Profile reloaded: ID=%d, UserID=%d", profile.ID, profile.UserID)
-		return profile, nil
+		return newProfile, nil
 	}
 
 	log.Printf("[GetOrCreateProfile] Unexpected error: %v", err)
@@ -140,9 +146,31 @@ func (s *profileService) UpdateProfile(userID uint, req *models.ProfileUpdateReq
 	}
 
 	// Update only provided fields
+	if req.FirstName != nil {
+		profile.FirstName = *req.FirstName
+	}
+	if req.LastName != nil {
+		profile.LastName = *req.LastName
+	}
 	if req.FullName != nil {
 		profile.FullName = *req.FullName
 	}
+	
+	// Auto-generate full_name if first_name or last_name is provided but full_name is not
+	if (req.FirstName != nil || req.LastName != nil) && req.FullName == nil {
+		// Build full name from first_name and last_name
+		firstName := profile.FirstName
+		lastName := profile.LastName
+		
+		if firstName != "" && lastName != "" {
+			profile.FullName = firstName + " " + lastName
+		} else if firstName != "" {
+			profile.FullName = firstName
+		} else if lastName != "" {
+			profile.FullName = lastName
+		}
+	}
+	
 	if req.PhoneNumber != nil {
 		profile.PhoneNumber = *req.PhoneNumber
 	}

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -95,6 +96,26 @@ func (h *CompanyHandler) UpdateCompany(c *gin.Context) {
 }
 
 func (h *CompanyHandler) UploadFile(c *gin.Context, fileType string) {
+	// Check user type
+	userType, exists := c.Get("user_type")
+	
+	// DEBUG: Log actual value
+	log.Printf("[UploadFile] user_type exists: %v, value: %v, type: %T", exists, userType, userType)
+	
+	if !exists {
+		c.JSON(http.StatusForbidden, models.ErrorResponse("Only companies can upload company files", "FORBIDDEN", nil))
+		return
+	}
+	
+	// Convert to string and check
+	userTypeStr, ok := userType.(string)
+	log.Printf("[UploadFile] type assertion ok: %v, userTypeStr: %s", ok, userTypeStr)
+	
+	if !ok || userTypeStr != "company" {
+		c.JSON(http.StatusForbidden, models.ErrorResponse("Only companies can upload company files", "FORBIDDEN", nil))
+		return
+	}
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse("Invalid company ID", "INVALID_ID", nil))

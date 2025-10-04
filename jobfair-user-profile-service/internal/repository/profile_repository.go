@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"log"
 	"jobfair-user-profile-service/internal/models"
 
 	"gorm.io/gorm"
@@ -37,7 +38,12 @@ func (r *profileRepository) GetByID(id uint) (*models.Profile, error) {
 func (r *profileRepository) GetByUserID(userID uint) (*models.Profile, error) {
 	var profile models.Profile
 	err := r.db.Where("user_id = ?", userID).First(&profile).Error
-	return &profile, err
+	if err != nil {
+		return nil, err
+	}
+	// Debug log
+	log.Printf("[ProfileRepo] GetByUserID(%d) found profile: ID=%d", userID, profile.ID)
+	return &profile, nil
 }
 
 func (r *profileRepository) Update(profile *models.Profile) error {

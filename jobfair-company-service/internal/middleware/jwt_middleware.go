@@ -54,6 +54,12 @@ func JWTMiddleware(jwtSecret string) gin.HandlerFunc {
 				c.Abort()
 				return
 			}
+			
+			// Ambil user_type dari klaim
+			if userType, ok := claims["user_type"].(string); ok {
+				c.Set("user_type", userType)
+			}
+			// Note: user_type optional, tidak error jika tidak ada
 		}
 
 		c.Next()
