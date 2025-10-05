@@ -16,10 +16,10 @@ import (
 )
 
 type JobService struct {
-	jobRepo         *repository.JobRepository
-	applicationRepo *repository.ApplicationRepository
-	savedJobRepo    *repository.SavedJobRepository
-	companyRepo     *repository.CompanyRepository
+	jobRepo           *repository.JobRepository
+	applicationRepo   *repository.ApplicationRepository
+	savedJobRepo      *repository.SavedJobRepository
+	companyRepo       *repository.CompanyRepository
 	companyServiceURL string
 }
 
@@ -31,10 +31,10 @@ func NewJobService(
 	companyServiceURL string,
 ) *JobService {
 	return &JobService{
-		jobRepo:         jobRepo,
-		applicationRepo: applicationRepo,
-		savedJobRepo:    savedJobRepo,
-		companyRepo:     companyRepo,
+		jobRepo:           jobRepo,
+		applicationRepo:   applicationRepo,
+		savedJobRepo:      savedJobRepo,
+		companyRepo:       companyRepo,
 		companyServiceURL: companyServiceURL,
 	}
 }
@@ -528,4 +528,45 @@ func (s *JobService) EnrichJobsWithUserContext(jobs []models.JobWithCompany, use
 	}
 
 	return jobs
+}
+
+// EnrichJobDetailWithCompanyData enriches job detail with company data
+func (s *JobService) EnrichJobDetailWithCompanyData(jobDetail *models.JobDetailResponse) (*models.JobDetailResponse, error) {
+	if jobDetail == nil || jobDetail.Job == nil {
+		return jobDetail, nil
+	}
+
+	// Fetch company data
+	companyData, err := s.fetchCompanyData(jobDetail.Job.CompanyID)
+	if err != nil {
+		fmt.Printf("[WARNING] Failed to fetch company %d: %v\n", jobDetail.Job.CompanyID, err)
+		// Use fallback company data if fetch fails
+		companyData = map[string]interface{}{
+			"id":   jobDetail.Job.CompanyID,
+			"name": "Unknown Company",
+		}
+	}
+
+	// Add company data to response
+	jobDetail.Company = companyData
+
+	return jobDetail, nil
+}
+
+// CheckIfJobIsSaved checks if a job is saved by user
+func (s *JobService) CheckIfJobIsSaved(jobID, userID uint) (bool, error) {
+	savedJob, err := s.savedJobRepo.GetByJobIDAndUserID(jobID, userID)
+	if err != nil {
+		return false, err
+	}
+	return savedJob != nil, nil
+}
+
+// CheckIfJobIsApplied checks if user has applied to a job
+func (s *JobService) CheckIfJobIsApplied(jobID, userID uint) (bool, *models.JobApplication) {
+	application, err := s.applicationRepo.GetByJobIDAndUserID(jobID, userID)
+	if err != nil {
+		return false, nil
+	}
+	return true, application
 }

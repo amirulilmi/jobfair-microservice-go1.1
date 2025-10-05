@@ -18,23 +18,23 @@ type PaginationMeta struct {
 
 // CreateJobRequest is the request for creating a job
 type CreateJobRequest struct {
-	Title            string           `json:"title" binding:"required"`
-	Description      string           `json:"description" binding:"required"`
-	EmploymentType   EmploymentType   `json:"employment_type" binding:"required"`
-	WorkType         WorkType         `json:"work_type" binding:"required"`
-	ExperienceLevel  ExperienceLevel  `json:"experience_level" binding:"required"`
-	Location         string           `json:"location" binding:"required"`
-	SalaryMin        int              `json:"salary_min"`
-	SalaryMax        int              `json:"salary_max"`
-	Requirements     []string         `json:"requirements"`
-	Responsibilities []string         `json:"responsibilities"`
-	Skills           []string         `json:"skills"`
-	Benefits         []string         `json:"benefits"`
-	ReceiveMethod    string           `json:"receive_method"` // email or external
-	ContactEmail     string           `json:"contact_email"`
-	ExternalURL      *string          `json:"external_url"`
-	Deadline         *string          `json:"deadline"` // ISO 8601 format
-	Tags             []string         `json:"tags"`
+	Title            string          `json:"title" binding:"required"`
+	Description      string          `json:"description" binding:"required"`
+	EmploymentType   EmploymentType  `json:"employment_type" binding:"required"`
+	WorkType         WorkType        `json:"work_type" binding:"required"`
+	ExperienceLevel  ExperienceLevel `json:"experience_level" binding:"required"`
+	Location         string          `json:"location" binding:"required"`
+	SalaryMin        int             `json:"salary_min"`
+	SalaryMax        int             `json:"salary_max"`
+	Requirements     []string        `json:"requirements"`
+	Responsibilities []string        `json:"responsibilities"`
+	Skills           []string        `json:"skills"`
+	Benefits         []string        `json:"benefits"`
+	ReceiveMethod    string          `json:"receive_method"` // email or external
+	ContactEmail     string          `json:"contact_email"`
+	ExternalURL      *string         `json:"external_url"`
+	Deadline         *string         `json:"deadline"` // ISO 8601 format
+	Tags             []string        `json:"tags"`
 }
 
 // UpdateJobRequest is the request for updating a job
@@ -119,13 +119,19 @@ type ApplicationWithJob struct {
 // JobWithCompany combines job and company data for list responses
 type JobWithCompany struct {
 	*Job
-	Company     map[string]interface{} `json:"company,omitempty"`
-	IsSaved     bool                   `json:"is_saved"`
-	HasApplied  bool                   `json:"has_applied"`
+	Company    map[string]interface{} `json:"company,omitempty"`
+	IsSaved    bool                   `json:"is_saved"`
+	HasApplied bool                   `json:"has_applied"`
 }
 
 // JobListResponse for list jobs with company data
 type JobListResponse struct {
 	Jobs []JobWithCompany `json:"jobs"`
-	Meta PaginationMeta  `json:"meta"`
+	Meta PaginationMeta   `json:"meta"`
+}
+
+type ApplicationWithCompany struct {
+	*JobApplication
+	Job     *Job                   `json:"job,omitempty"`
+	Company map[string]interface{} `json:"company,omitempty"`
 }

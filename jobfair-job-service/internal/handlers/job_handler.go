@@ -94,9 +94,32 @@ func (h *JobHandler) GetJob(c *gin.Context) {
 		return
 	}
 
+	// Enrich with company data
+	jobDetailWithCompany, err := h.jobService.EnrichJobDetailWithCompanyData(jobDetail)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.APIResponse{
+			Success: false,
+			Message: "Failed to enrich job data: " + err.Error(),
+		})
+		return
+	}
+
+	// IMPORTANT: Re-check user context after enrichment
+	// This ensures is_saved and has_applied are accurate
+	if userID != nil {
+		isSaved, _ := h.jobService.CheckIfJobIsSaved(uint(id), *userID)
+		jobDetailWithCompany.IsSaved = isSaved
+
+		hasApplied, application := h.jobService.CheckIfJobIsApplied(uint(id), *userID)
+		jobDetailWithCompany.HasApplied = hasApplied
+		if hasApplied {
+			jobDetailWithCompany.Application = application
+		}
+	}
+
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
-		Data:    jobDetail,
+		Data:    jobDetailWithCompany,
 	})
 }
 

@@ -45,7 +45,8 @@ func main() {
 
 	// Initialize services
 	jobService := services.NewJobService(jobRepo, applicationRepo, savedJobRepo, companyRepo, cfg.CompanyServiceURL)
-	applicationService := services.NewApplicationService(applicationRepo, jobRepo)
+	// applicationService := services.NewApplicationService(applicationRepo, jobRepo)
+	applicationService := services.NewApplicationService(applicationRepo, jobRepo, cfg.CompanyServiceURL) // Tambahkan cfg.CompanyServiceURL
 
 	// Initialize handlers
 	jobHandler := handlers.NewJobHandler(jobService)
@@ -69,10 +70,10 @@ func main() {
 
 	// Setup Gin
 	router := gin.Default()
-	
+
 	// Disable automatic trailing slash redirect to prevent 301 loops
 	router.RedirectTrailingSlash = false
-	
+
 	router.MaxMultipartMemory = 10 << 20 // 10MB
 
 	// CORS middleware
@@ -159,7 +160,7 @@ func main() {
 			// Company mapping management
 			admin.POST("/sync-company-mapping", adminHandler.SyncCompanyMapping)
 			admin.GET("/company-mappings", adminHandler.GetCompanyMappings)
-			
+
 			// Health checks
 			admin.GET("/health/data-consistency", adminHandler.HealthCheckDataConsistency)
 		}
@@ -186,13 +187,13 @@ func main() {
 	// Wait for interrupt signal
 	<-quit
 	log.Println("🛑 Shutting down server...")
-	
+
 	// Close consumer
 	if companyConsumer != nil {
 		if err := companyConsumer.Close(); err != nil {
 			log.Printf("Error closing consumer: %v", err)
 		}
 	}
-	
+
 	log.Println("✅ Server exited")
 }

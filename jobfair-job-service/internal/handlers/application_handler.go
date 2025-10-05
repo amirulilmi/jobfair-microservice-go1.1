@@ -75,9 +75,19 @@ func (h *ApplicationHandler) GetMyApplications(c *gin.Context) {
 		return
 	}
 
+	// Enrich applications with company data
+	enrichedApplications, err := h.applicationService.EnrichApplicationsWithCompanyData(applications)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.APIResponse{
+			Success: false,
+			Message: "Failed to enrich application data: " + err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
-		Data:    applications,
+		Data:    enrichedApplications,
 		Meta:    meta,
 	})
 }

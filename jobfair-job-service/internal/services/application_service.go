@@ -1,24 +1,30 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"jobfair-job-service/internal/models"
 	"jobfair-job-service/internal/repository"
+	"net/http"
 	"time"
 )
 
 type ApplicationService struct {
-	applicationRepo *repository.ApplicationRepository
-	jobRepo         *repository.JobRepository
+	applicationRepo   *repository.ApplicationRepository
+	jobRepo           *repository.JobRepository
+	companyServiceURL string
 }
 
 func NewApplicationService(
 	applicationRepo *repository.ApplicationRepository,
-	jobRepo *repository.JobRepository,
+	jobRepo *repository.JobRepository, companyServiceURL string,
 ) *ApplicationService {
 	return &ApplicationService{
-		applicationRepo: applicationRepo,
-		jobRepo:         jobRepo,
+		applicationRepo:   applicationRepo,
+		jobRepo:           jobRepo,
+		companyServiceURL: companyServiceURL,
 	}
 }
 
@@ -196,4 +202,86 @@ func (s *ApplicationService) GetApplicationStats(companyID uint) (map[string]int
 // GetUserApplicationsCount returns count of applications by user
 func (s *ApplicationService) GetUserApplicationsCount(userID uint) (int64, error) {
 	return s.applicationRepo.CountByUserID(userID)
+}
+
+// EnrichApplicationsWithCompanyData enriches applications with company data
+func (s *ApplicationService) EnrichApplicationsWithCompanyData(applications []*models.JobApplication) ([]models.ApplicationWithCompany, error) {
+	if len(applications) == 0 {
+		return []models.ApplicationWithCompany{}, nil
+	}
+
+	// Collect unique company IDs from jobs
+	companyIDs := make(map[uint]bool)
+	for _, app := range applications {
+		if app.Job != nil {
+			companyIDs[app.Job.CompanyID] = true
+		}
+	}
+
+	// Fetch company data for all unique IDs
+	companyDataMap := make(map[uint]map[string]interface{})
+	for companyID := range companyIDs {
+		companyData, err := s.fetchCompanyData(companyID)
+		if err != nil {
+			fmt.Printf("[WARNING] Failed to fetch company %d: %v\n", companyID, err)
+			// Use fallback company data if fetch fails
+			companyDataMap[companyID] = map[string]interface{}{
+				"id":   companyID,
+				"name": "Unknown Company",
+			}
+		} else {
+			companyDataMap[companyID] = companyData
+		}
+	}
+
+	// Enrich applications with company data
+	result := make([]models.ApplicationWithCompany, len(applications))
+	for i, app := range applications {
+		var companyData map[string]interface{}
+		if app.Job != nil {
+			companyData = companyDataMap[app.Job.CompanyID]
+		}
+
+		result[i] = models.ApplicationWithCompany{
+			JobApplication: app,
+			Job:            app.Job,
+			Company:        companyData,
+		}
+	}
+
+	return result, nil
+}
+
+// fetchCompanyData fetches company data from company service
+func (s *ApplicationService) fetchCompanyData(companyID uint) (map[string]interface{}, error) {
+	// Get company service URL from job service
+	// We need to add this as a dependency
+	client := &http.Client{Timeout: 5 * time.Second}
+	url := fmt.Sprintf("%s/api/v1/companies/%d", s.companyServiceURL, companyID)
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("company service returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Success bool                   `json:"success"`
+		Data    map[string]interface{} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	if !result.Success {
+		return nil, errors.New("company service returned unsuccessful response")
+	}
+
+	return result.Data, nil
 }
