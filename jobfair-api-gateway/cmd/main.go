@@ -90,7 +90,7 @@ func main() {
 	// ==================== STATIC FILES - AUTH SERVICE ====================
 	// Profile photos and company logos
 	router.Any("/uploads/profiles/*filepath", proxyHandler(authProxy, "/uploads/profiles"))
-	router.Any("/uploads/companies/*filepath", proxyHandler(authProxy, "/uploads/companies"))
+	router.Any("/uploads/companies/*filepath", proxyHandler(companyProxy, "/uploads/companies"))
 
 	// ==================== COMPANY SERVICE ROUTES ====================
 	// Company CRUD routes

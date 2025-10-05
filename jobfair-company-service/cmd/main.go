@@ -92,6 +92,9 @@ func main() {
 		})
 	})
 
+	// Static file serving for uploads
+	router.Static("/uploads", "./uploads")
+
 	// JWT Secret
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {

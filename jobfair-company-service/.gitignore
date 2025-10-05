@@ -1,0 +1,50 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+main
+
+# Dependencies
+vendor/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploaded files (keep folder structure but ignore actual files)
+uploads/**/*
+!uploads/.gitkeep
+!uploads/companies/
+!uploads/companies/logos/
+!uploads/companies/logos/.gitkeep
+!uploads/companies/banners/
+!uploads/companies/banners/.gitkeep
+!uploads/companies/videos/
+!uploads/companies/videos/.gitkeep
+!uploads/companies/gallery/
+!uploads/companies/gallery/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Build
+bin/
+dist/
+build/

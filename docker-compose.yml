@@ -212,6 +212,8 @@ services:
       JWT_SECRET: your-super-secret-jwt-key-for-development
       PORT: 8080
       GIN_MODE: debug
+    volumes:
+      - ./jobfair-company-service/uploads:/root/uploads
     networks:
       - jobfair_network
     depends_on:

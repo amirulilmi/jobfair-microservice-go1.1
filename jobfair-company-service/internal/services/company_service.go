@@ -3,13 +3,16 @@ package services
 import (
 	"errors"
 	"fmt"
+	"io"
 	"mime/multipart"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"jobfair-company-service/internal/models"
 	"jobfair-company-service/internal/repository"
+
 	"github.com/gosimple/slug"
 )
 
@@ -159,15 +162,67 @@ func (s *CompanyService) UploadFile(companyID uint, file *multipart.FileHeader, 
 		return "", err
 	}
 
-	// Generate filename
-	filename := fmt.Sprintf("%d_%s_%d%s", companyID, fileType, time.Now().Unix(), filepath.Ext(file.Filename))
-	url := fmt.Sprintf("/uploads/%s", filename)
+	// Determine upload directory based on file type
+	var uploadDir string
+	var urlPrefix string
 
-	// Update company based on file type
 	switch fileType {
 	case "logo":
+		uploadDir = "./uploads/companies/logos"
+		urlPrefix = "/uploads/companies/logos"
+	case "banner":
+		uploadDir = "./uploads/companies/banners"
+		urlPrefix = "/uploads/companies/banners"
+	case "video":
+		uploadDir = "./uploads/companies/videos"
+		urlPrefix = "/uploads/companies/videos"
+	case "gallery":
+		uploadDir = "./uploads/companies/gallery"
+		urlPrefix = "/uploads/companies/gallery"
+	default:
+		return "", errors.New("invalid file type")
+	}
+
+	// Create upload directory if not exists
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create upload directory: %w", err)
+	}
+
+	// Generate filename
+	filename := fmt.Sprintf("%d_%s_%d%s", companyID, fileType, time.Now().Unix(), filepath.Ext(file.Filename))
+	filePath := filepath.Join(uploadDir, filename)
+	url := fmt.Sprintf("%s/%s", urlPrefix, filename)
+
+	fmt.Printf("[Company Upload] Saving %s file to: %s\n", fileType, filePath)
+
+	// Save file to disk
+	src, err := file.Open()
+	if err != nil {
+		return "", fmt.Errorf("failed to open uploaded file: %w", err)
+	}
+	defer src.Close()
+
+	dst, err := os.Create(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to create file: %w", err)
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, src); err != nil {
+		fmt.Printf("[Company Upload ERROR] Failed to copy file: %v\n", err)
+		return "", fmt.Errorf("failed to save file: %w", err)
+	}
+
+	fmt.Printf("[Company Upload] File saved successfully: %s\n", filePath)
+
+	// Delete old file if updating
+	var oldURL string
+	switch fileType {
+	case "logo":
+		oldURL = company.LogoURL
 		company.LogoURL = url
 	case "banner":
+		oldURL = company.BannerURL
 		company.BannerURL = url
 	case "video":
 		company.VideoURLs = append(company.VideoURLs, url)
@@ -175,9 +230,24 @@ func (s *CompanyService) UploadFile(companyID uint, file *multipart.FileHeader, 
 		company.GalleryURLs = append(company.GalleryURLs, url)
 	}
 
+	// Delete old file from disk
+	if oldURL != "" && (fileType == "logo" || fileType == "banner") {
+		// Extract path from URL
+		// oldURL format: /uploads/companies/logos/1_logo_xxx.jpg
+		oldPath := "." + oldURL // Convert to relative path
+		os.Remove(oldPath)
+		fmt.Printf("[Company Upload] Deleted old file: %s\n", oldPath)
+	}
+
+	// Update company in database
 	if err := s.companyRepo.Update(company); err != nil {
+		// Cleanup uploaded file if database update fails
+		os.Remove(filePath)
+		fmt.Printf("[Company Upload ERROR] Database update failed, file removed: %v\n", err)
 		return "", err
 	}
+
+	fmt.Printf("[Company Upload] ✅ Upload successful! URL: %s\n", url)
 
 	return url, nil
 }
