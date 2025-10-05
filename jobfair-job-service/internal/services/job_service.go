@@ -412,6 +412,11 @@ func (s *JobService) GetSavedJobs(userID uint, page, limit int) ([]*models.Saved
 	return savedJobs, meta, nil
 }
 
+// GetUserSavedCount returns count of saved jobs by user
+func (s *JobService) GetUserSavedCount(userID uint) (int64, error) {
+	return s.savedJobRepo.CountByUserID(userID)
+}
+
 // fetchCompanyData fetches company data from company service
 func (s *JobService) fetchCompanyData(companyID uint) (map[string]interface{}, error) {
 	client := &http.Client{Timeout: 5 * time.Second}
@@ -476,10 +481,51 @@ func (s *JobService) EnrichJobsWithCompanyData(jobs []*models.Job) ([]models.Job
 	result := make([]models.JobWithCompany, len(jobs))
 	for i, job := range jobs {
 		result[i] = models.JobWithCompany{
-			Job:     job,
-			Company: companyDataMap[job.CompanyID],
+			Job:        job,
+			Company:    companyDataMap[job.CompanyID],
+			IsSaved:    false, // Default values, will be updated if userID provided
+			HasApplied: false,
 		}
 	}
 
 	return result, nil
+}
+
+// EnrichJobsWithUserContext enriches jobs with user-specific data (saved, applied status)
+func (s *JobService) EnrichJobsWithUserContext(jobs []models.JobWithCompany, userID *uint) []models.JobWithCompany {
+	if userID == nil || len(jobs) == 0 {
+		return jobs
+	}
+
+	// Collect all job IDs
+	jobIDs := make([]uint, len(jobs))
+	for i, job := range jobs {
+		jobIDs[i] = job.ID
+	}
+
+	// Batch check saved jobs
+	savedJobsMap := make(map[uint]bool)
+	savedJobs, err := s.savedJobRepo.GetByUserIDAndJobIDs(*userID, jobIDs)
+	if err == nil {
+		for _, saved := range savedJobs {
+			savedJobsMap[saved.JobID] = true
+		}
+	}
+
+	// Batch check applied jobs
+	appliedJobsMap := make(map[uint]bool)
+	applications, err := s.applicationRepo.GetByUserIDAndJobIDs(*userID, jobIDs)
+	if err == nil {
+		for _, app := range applications {
+			appliedJobsMap[app.JobID] = true
+		}
+	}
+
+	// Update jobs with user context
+	for i := range jobs {
+		jobs[i].IsSaved = savedJobsMap[jobs[i].ID]
+		jobs[i].HasApplied = appliedJobsMap[jobs[i].ID]
+	}
+
+	return jobs
 }

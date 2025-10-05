@@ -75,13 +75,13 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 		return
 	}
 
-	profile, err := h.service.GetProfile(userID.(uint))
+	profileWithCounts, err := h.service.GetProfileWithCounts(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusNotFound, models.ErrorResponse("Profile not found", "NOT_FOUND", nil))
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse("Profile retrieved successfully", profile))
+	c.JSON(http.StatusOK, models.SuccessResponse("Profile retrieved successfully", profileWithCounts))
 }
 
 func (h *ProfileHandler) GetProfileWithRelations(c *gin.Context) {

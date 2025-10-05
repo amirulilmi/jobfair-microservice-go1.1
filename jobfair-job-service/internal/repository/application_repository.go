@@ -175,3 +175,12 @@ func (r *ApplicationRepository) GetApplicationStats(companyID uint) (map[string]
 
 	return stats, nil
 }
+
+// GetByUserIDAndJobIDs checks which jobs are applied by user (batch query)
+func (r *ApplicationRepository) GetByUserIDAndJobIDs(userID uint, jobIDs []uint) ([]*models.JobApplication, error) {
+	var applications []*models.JobApplication
+	if err := r.db.Where("user_id = ? AND job_id IN ?", userID, jobIDs).Find(&applications).Error; err != nil {
+		return nil, err
+	}
+	return applications, nil
+}

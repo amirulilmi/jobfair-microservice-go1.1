@@ -1,11 +1,13 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,6 +22,7 @@ import (
 type ProfileService interface {
 	CreateProfile(userID uint, fullName, phoneNumber string) (*models.Profile, error)
 	GetProfile(userID uint) (*models.Profile, error)
+	GetProfileWithCounts(userID uint) (*models.ProfileResponse, error)
 	GetOrCreateProfile(userID uint) (*models.Profile, error)
 	GetProfileWithRelations(userID uint) (*models.Profile, error)
 	UpdateProfile(userID uint, req *models.ProfileUpdateRequest) (*models.Profile, error)
@@ -447,4 +450,73 @@ func (s *profileService) DeleteBanner(userID uint) error {
 
 	s.UpdateCompletionStatus(userID)
 	return nil
+}
+
+// fetchJobCounts fetches application and saved job counts from job service
+func (s *profileService) fetchJobCounts(userID uint) (applicationsCount int64, savedCount int64, err error) {
+	// Get job service URL from environment
+	jobServiceURL := os.Getenv("JOB_SERVICE_URL")
+	if jobServiceURL == "" {
+		jobServiceURL = "http://localhost:8082" // default
+	}
+
+	client := &http.Client{Timeout: 5 * time.Second}
+
+	// Fetch applications count
+	applicationsURL := fmt.Sprintf("%s/api/v1/stats/user/%d/applications", jobServiceURL, userID)
+	resp, err := client.Get(applicationsURL)
+	if err != nil {
+		log.Printf("[WARNING] Failed to fetch applications count: %v", err)
+		// Continue with savedCount check even if applications fails
+		applicationsCount = 0
+	} else {
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusOK {
+			var result struct {
+				Success bool  `json:"success"`
+				Data    int64 `json:"data"`
+			}
+			if err := json.NewDecoder(resp.Body).Decode(&result); err == nil && result.Success {
+				applicationsCount = result.Data
+			}
+		}
+	}
+
+	// Fetch saved jobs count
+	savedURL := fmt.Sprintf("%s/api/v1/stats/user/%d/saved", jobServiceURL, userID)
+	resp, err = client.Get(savedURL)
+	if err != nil {
+		log.Printf("[WARNING] Failed to fetch saved count: %v", err)
+		savedCount = 0
+	} else {
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusOK {
+			var result struct {
+				Success bool  `json:"success"`
+				Data    int64 `json:"data"`
+			}
+			if err := json.NewDecoder(resp.Body).Decode(&result); err == nil && result.Success {
+				savedCount = result.Data
+			}
+		}
+	}
+
+	return applicationsCount, savedCount, nil
+}
+
+// GetProfileWithCounts returns profile with job counts
+func (s *profileService) GetProfileWithCounts(userID uint) (*models.ProfileResponse, error) {
+	profile, err := s.GetProfile(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch counts from job service
+	applicationsCount, savedCount, _ := s.fetchJobCounts(userID)
+
+	return &models.ProfileResponse{
+		Profile:           profile,
+		ApplicationsCount: applicationsCount,
+		SavedCount:        savedCount,
+	}, nil
 }

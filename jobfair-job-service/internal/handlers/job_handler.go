@@ -265,6 +265,16 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 		return
 	}
 
+	// Get user ID if authenticated (optional)
+	var userID *uint
+	if uid, exists := c.Get("user_id"); exists {
+		uidValue := uid.(uint)
+		userID = &uidValue
+	}
+
+	// Enrich with user context (is_saved, has_applied)
+	jobsWithCompany = h.jobService.EnrichJobsWithUserContext(jobsWithCompany, userID)
+
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
 		Data:    jobsWithCompany,

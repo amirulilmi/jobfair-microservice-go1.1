@@ -79,3 +79,12 @@ func (r *SavedJobRepository) CountByUserID(userID uint) (int64, error) {
 	}
 	return count, nil
 }
+
+// GetByUserIDAndJobIDs checks which jobs are saved by user (batch query)
+func (r *SavedJobRepository) GetByUserIDAndJobIDs(userID uint, jobIDs []uint) ([]*models.SavedJob, error) {
+	var savedJobs []*models.SavedJob
+	if err := r.db.Where("user_id = ? AND job_id IN ?", userID, jobIDs).Find(&savedJobs).Error; err != nil {
+		return nil, err
+	}
+	return savedJobs, nil
+}

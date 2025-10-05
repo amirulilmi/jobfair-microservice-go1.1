@@ -51,6 +51,7 @@ func main() {
 	jobHandler := handlers.NewJobHandler(jobService)
 	applicationHandler := handlers.NewApplicationHandler(applicationService)
 	adminHandler := handlers.NewAdminHandler(companyRepo, jobService)
+	statsHandler := handlers.NewStatsHandler(applicationService, jobService)
 
 	// Initialize and start event consumer
 	companyConsumer, err := consumers.NewCompanyEventConsumer(cfg.RabbitMQURL, companyRepo)
@@ -142,6 +143,13 @@ func main() {
 
 			// Applications by job (company only)
 			protected.GET("/jobs/:id/applications", applicationHandler.GetApplicationsByJobID)
+		}
+
+		// Stats routes (public for internal service calls)
+		stats := api.Group("/stats")
+		{
+			stats.GET("/user/:user_id/applications", statsHandler.GetUserApplicationsCount)
+			stats.GET("/user/:user_id/saved", statsHandler.GetUserSavedCount)
 		}
 
 		// Admin routes (admin only)

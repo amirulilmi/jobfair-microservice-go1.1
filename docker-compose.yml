@@ -263,6 +263,7 @@ services:
     environment:
       DATABASE_URL: postgres://jobfair_user:jobfair_pass@postgres-profile:5432/jobfair_profiles?sslmode=disable
       AUTH_SERVICE_URL: http://auth-service:8080
+      JOB_SERVICE_URL: http://job-service:8082
       RABBITMQ_URL: amqp://jobfair_user:jobfair_pass@rabbitmq:5672/
       JWT_SECRET: your-super-secret-jwt-key-for-development
       PORT: 8083
@@ -280,6 +281,8 @@ services:
       rabbitmq:
         condition: service_healthy
       auth-service:
+        condition: service_started
+      job-service:
         condition: service_started
     restart: unless-stopped
 

@@ -192,3 +192,8 @@ func (s *ApplicationService) WithdrawApplication(applicationID, userID uint) err
 func (s *ApplicationService) GetApplicationStats(companyID uint) (map[string]int64, error) {
 	return s.applicationRepo.GetApplicationStats(companyID)
 }
+
+// GetUserApplicationsCount returns count of applications by user
+func (s *ApplicationService) GetUserApplicationsCount(userID uint) (int64, error) {
+	return s.applicationRepo.CountByUserID(userID)
+}

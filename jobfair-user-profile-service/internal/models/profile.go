@@ -64,3 +64,10 @@ type ProfileUpdateRequest struct {
 	ProfilePictureURL *string    `json:"profile_picture_url"`
 	BannerImageURL    *string    `json:"banner_image_url"`
 }
+
+// ProfileResponse extends Profile with additional computed fields
+type ProfileResponse struct {
+	*Profile
+	ApplicationsCount int64 `json:"applications_count"`
+	SavedCount        int64 `json:"saved_count"`
+}

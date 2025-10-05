@@ -119,7 +119,9 @@ type ApplicationWithJob struct {
 // JobWithCompany combines job and company data for list responses
 type JobWithCompany struct {
 	*Job
-	Company map[string]interface{} `json:"company,omitempty"`
+	Company     map[string]interface{} `json:"company,omitempty"`
+	IsSaved     bool                   `json:"is_saved"`
+	HasApplied  bool                   `json:"has_applied"`
 }
 
 // JobListResponse for list jobs with company data
