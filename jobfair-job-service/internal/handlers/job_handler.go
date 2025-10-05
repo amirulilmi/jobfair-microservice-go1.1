@@ -255,9 +255,19 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 		return
 	}
 
+	// Enrich jobs with company data
+	jobsWithCompany, err := h.jobService.EnrichJobsWithCompanyData(jobs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.APIResponse{
+			Success: false,
+			Message: "Failed to enrich job data: " + err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
-		Data:    jobs,
+		Data:    jobsWithCompany,
 		Meta:    meta,
 	})
 }

@@ -115,3 +115,15 @@ type ApplicationWithJob struct {
 	Job         *Job                   `json:"job"`
 	Company     map[string]interface{} `json:"company"`
 }
+
+// JobWithCompany combines job and company data for list responses
+type JobWithCompany struct {
+	*Job
+	Company map[string]interface{} `json:"company,omitempty"`
+}
+
+// JobListResponse for list jobs with company data
+type JobListResponse struct {
+	Jobs []JobWithCompany `json:"jobs"`
+	Meta PaginationMeta  `json:"meta"`
+}

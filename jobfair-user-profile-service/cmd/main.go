@@ -89,6 +89,7 @@ func main() {
 	skillHandler := handlers.NewSkillHandler(skillService)
 	preferenceHandler := handlers.NewPreferenceHandler(preferenceService)
 	cvHandler := handlers.NewCVHandler(cvService)
+	bannerHandler := handlers.NewBannerHandler(profileService)
 
 	// Initialize Gin router
 	router := gin.Default()
@@ -107,6 +108,8 @@ func main() {
 	// Static file serving for uploads (CV files)
 	// Map /uploads/cv to the upload directory
 	router.Static("/uploads/cv", cfg.UploadDir)
+	// Map /uploads/banners for banner images
+	router.Static("/uploads/banners", "./uploads/banners")
 
 	// API v1 routes with JWT authentication
 	v1 := router.Group("/api/v1")
@@ -185,6 +188,12 @@ func main() {
 		v1.GET("/cv/", cvHandler.Get)
 		v1.DELETE("/cv", cvHandler.Delete)
 		v1.DELETE("/cv/", cvHandler.Delete)
+
+		// Banner routes - handle both with and without trailing slash
+		v1.POST("/banner", bannerHandler.UploadBanner)
+		v1.POST("/banner/", bannerHandler.UploadBanner)
+		v1.DELETE("/banner", bannerHandler.DeleteBanner)
+		v1.DELETE("/banner/", bannerHandler.DeleteBanner)
 
 		// Badge routes
 		badges := v1.Group("/badges")

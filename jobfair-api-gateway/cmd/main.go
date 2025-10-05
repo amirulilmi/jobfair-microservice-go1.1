@@ -139,6 +139,10 @@ func main() {
 	router.Any("/api/v1/cv/*proxyPath", proxyHandler(profileProxy, "/api/v1/cv"))
 	router.Any("/api/v1/cv", proxyHandler(profileProxy, "/api/v1/cv"))
 
+	// Banner routes
+	router.Any("/api/v1/banner/*proxyPath", proxyHandler(profileProxy, "/api/v1/banner"))
+	router.Any("/api/v1/banner", proxyHandler(profileProxy, "/api/v1/banner"))
+
 	// Badges routes
 	router.Any("/api/v1/badges/*proxyPath", proxyHandler(profileProxy, "/api/v1/badges"))
 	router.Any("/api/v1/badges", proxyHandler(profileProxy, "/api/v1/badges"))
@@ -146,6 +150,8 @@ func main() {
 	// ==================== STATIC FILES - USER PROFILE SERVICE ====================
 	// CV files
 	router.Any("/uploads/cv/*filepath", proxyHandler(profileProxy, "/uploads/cv"))
+	// Banner images
+	router.Any("/uploads/banners/*filepath", proxyHandler(profileProxy, "/uploads/banners"))
 
 	// 404 handler
 	router.NoRoute(func(c *gin.Context) {

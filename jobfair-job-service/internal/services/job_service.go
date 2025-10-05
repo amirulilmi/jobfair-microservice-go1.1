@@ -1,12 +1,16 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"time"
+
 	"jobfair-job-service/internal/models"
 	"jobfair-job-service/internal/repository"
 	"jobfair-job-service/internal/utils"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -16,6 +20,7 @@ type JobService struct {
 	applicationRepo *repository.ApplicationRepository
 	savedJobRepo    *repository.SavedJobRepository
 	companyRepo     *repository.CompanyRepository
+	companyServiceURL string
 }
 
 func NewJobService(
@@ -23,12 +28,14 @@ func NewJobService(
 	applicationRepo *repository.ApplicationRepository,
 	savedJobRepo *repository.SavedJobRepository,
 	companyRepo *repository.CompanyRepository,
+	companyServiceURL string,
 ) *JobService {
 	return &JobService{
 		jobRepo:         jobRepo,
 		applicationRepo: applicationRepo,
 		savedJobRepo:    savedJobRepo,
 		companyRepo:     companyRepo,
+		companyServiceURL: companyServiceURL,
 	}
 }
 
@@ -403,4 +410,76 @@ func (s *JobService) GetSavedJobs(userID uint, page, limit int) ([]*models.Saved
 	}
 
 	return savedJobs, meta, nil
+}
+
+// fetchCompanyData fetches company data from company service
+func (s *JobService) fetchCompanyData(companyID uint) (map[string]interface{}, error) {
+	client := &http.Client{Timeout: 5 * time.Second}
+	url := fmt.Sprintf("%s/api/v1/companies/%d", s.companyServiceURL, companyID)
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("company service returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Success bool                   `json:"success"`
+		Data    map[string]interface{} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	if !result.Success {
+		return nil, errors.New("company service returned unsuccessful response")
+	}
+
+	return result.Data, nil
+}
+
+// EnrichJobsWithCompanyData enriches jobs with company data
+func (s *JobService) EnrichJobsWithCompanyData(jobs []*models.Job) ([]models.JobWithCompany, error) {
+	if len(jobs) == 0 {
+		return []models.JobWithCompany{}, nil
+	}
+
+	// Collect unique company IDs
+	companyIDs := make(map[uint]bool)
+	for _, job := range jobs {
+		companyIDs[job.CompanyID] = true
+	}
+
+	// Fetch company data for all unique IDs
+	companyDataMap := make(map[uint]map[string]interface{})
+	for companyID := range companyIDs {
+		companyData, err := s.fetchCompanyData(companyID)
+		if err != nil {
+			fmt.Printf("[WARNING] Failed to fetch company %d: %v\n", companyID, err)
+			// Use fallback company data if fetch fails
+			companyDataMap[companyID] = map[string]interface{}{
+				"id":   companyID,
+				"name": "Unknown Company",
+			}
+		} else {
+			companyDataMap[companyID] = companyData
+		}
+	}
+
+	// Enrich jobs with company data
+	result := make([]models.JobWithCompany, len(jobs))
+	for i, job := range jobs {
+		result[i] = models.JobWithCompany{
+			Job:     job,
+			Company: companyDataMap[job.CompanyID],
+		}
+	}
+
+	return result, nil
 }

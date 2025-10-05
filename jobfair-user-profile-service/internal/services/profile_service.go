@@ -2,7 +2,15 @@ package services
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"jobfair-user-profile-service/internal/models"
 	"jobfair-user-profile-service/internal/repository"
 
@@ -17,6 +25,8 @@ type ProfileService interface {
 	UpdateProfile(userID uint, req *models.ProfileUpdateRequest) (*models.Profile, error)
 	CalculateCompletionStatus(profile *models.Profile) int
 	UpdateCompletionStatus(userID uint) error
+	UploadBanner(userID uint, file *multipart.FileHeader) (string, error)
+	DeleteBanner(userID uint) error
 }
 
 type profileService struct {
@@ -324,4 +334,117 @@ func (s *profileService) UpdateCompletionStatus(userID uint) error {
 
 	completionStatus := s.CalculateCompletionStatus(profile)
 	return s.profileRepo.UpdateCompletionStatus(profile.ID, completionStatus)
+}
+
+func (s *profileService) UploadBanner(userID uint, file *multipart.FileHeader) (string, error) {
+	// Get or create profile
+	profile, err := s.GetOrCreateProfile(userID)
+	if err != nil {
+		return "", errors.New("failed to get or create profile: " + err.Error())
+	}
+
+	// Validate file size (max 10MB for banner)
+	maxSize := int64(10 * 1024 * 1024) // 10MB
+	if file.Size > maxSize {
+		return "", fmt.Errorf("file size exceeds maximum allowed size of %d bytes", maxSize)
+	}
+
+	// Validate file type (only images)
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	allowedTypes := []string{".jpg", ".jpeg", ".png", ".webp", ".gif"}
+	validType := false
+	for _, allowedType := range allowedTypes {
+		if ext == allowedType {
+			validType = true
+			break
+		}
+	}
+	if !validType {
+		return "", errors.New("file type not allowed. Allowed types: .jpg, .jpeg, .png, .webp, .gif")
+	}
+
+	// Create upload directory if not exists
+	uploadDir := "./uploads/banners"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return "", err
+	}
+
+	// Generate unique filename
+	filename := fmt.Sprintf("%d_%d%s", profile.ID, time.Now().Unix(), ext)
+	filePath := filepath.Join(uploadDir, filename)
+
+	fmt.Printf("[Banner Upload] Saving file to: %s\n", filePath)
+
+	// Save file
+	src, err := file.Open()
+	if err != nil {
+		return "", err
+	}
+	defer src.Close()
+
+	dst, err := os.Create(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, src); err != nil {
+		fmt.Printf("[Banner Upload ERROR] Failed to copy file: %v\n", err)
+		return "", err
+	}
+
+	fmt.Printf("[Banner Upload] File saved successfully: %s\n", filePath)
+
+	// Delete old banner file if exists
+	if profile.BannerImageURL != "" {
+		oldFilename := filepath.Base(profile.BannerImageURL)
+		oldFilePath := filepath.Join(uploadDir, oldFilename)
+		os.Remove(oldFilePath)
+		fmt.Printf("[Banner Upload] Deleted old banner: %s\n", oldFilePath)
+	}
+
+	// Save URL path for HTTP access
+	bannerURL := fmt.Sprintf("/uploads/banners/%s", filename)
+
+	// Update profile with new banner URL
+	profile.BannerImageURL = bannerURL
+	err = s.profileRepo.Update(profile)
+	if err != nil {
+		// Cleanup uploaded file if database update fails
+		os.Remove(filePath)
+		fmt.Printf("[Banner Upload ERROR] Database update failed, file removed: %v\n", err)
+		return "", err
+	}
+
+	fmt.Printf("[Banner Upload] ✅ Banner uploaded successfully! URL: %s\n", bannerURL)
+
+	s.UpdateCompletionStatus(userID)
+	return bannerURL, nil
+}
+
+func (s *profileService) DeleteBanner(userID uint) error {
+	profile, err := s.GetProfile(userID)
+	if err != nil {
+		return errors.New("profile not found")
+	}
+
+	if profile.BannerImageURL == "" {
+		return errors.New("no banner to delete")
+	}
+
+	// Delete physical file
+	filename := filepath.Base(profile.BannerImageURL)
+	filePath := filepath.Join("./uploads/banners", filename)
+	os.Remove(filePath)
+	fmt.Printf("[Banner Delete] File removed: %s\n", filePath)
+
+	// Update profile - remove banner URL
+	profile.BannerImageURL = ""
+	err = s.profileRepo.Update(profile)
+	if err != nil {
+		return err
+	}
+
+	s.UpdateCompletionStatus(userID)
+	return nil
 }

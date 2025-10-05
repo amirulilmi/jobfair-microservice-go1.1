@@ -44,7 +44,7 @@ func main() {
 	companyRepo := repository.NewCompanyRepository(db)
 
 	// Initialize services
-	jobService := services.NewJobService(jobRepo, applicationRepo, savedJobRepo, companyRepo)
+	jobService := services.NewJobService(jobRepo, applicationRepo, savedJobRepo, companyRepo, cfg.CompanyServiceURL)
 	applicationService := services.NewApplicationService(applicationRepo, jobRepo)
 
 	// Initialize handlers
