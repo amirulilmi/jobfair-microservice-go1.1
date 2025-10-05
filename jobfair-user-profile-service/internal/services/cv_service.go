@@ -61,6 +61,8 @@ func (s *cvService) Upload(userID uint, file *multipart.FileHeader) (*models.CVD
 	filename := fmt.Sprintf("%d_%d%s", profile.ID, time.Now().Unix(), ext)
 	filePath := filepath.Join(s.config.UploadDir, filename)
 
+	fmt.Printf("[CV Upload] Saving file to: %s\n", filePath)
+
 	// Save file
 	src, err := file.Open()
 	if err != nil {
@@ -75,16 +77,22 @@ func (s *cvService) Upload(userID uint, file *multipart.FileHeader) (*models.CVD
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, src); err != nil {
+		fmt.Printf("[CV Upload ERROR] Failed to copy file: %v\n", err)
 		return nil, err
 	}
+
+	fmt.Printf("[CV Upload] File saved successfully: %s\n", filePath)
 
 	// Check if CV already exists for this profile
 	existing, _ := s.repo.GetByProfileID(profile.ID)
 
+	// Save URL path for HTTP access (relative path with /uploads prefix)
+	fileURL := fmt.Sprintf("/uploads/cv/%s", filename)
+
 	cvDoc := &models.CVDocument{
 		ProfileID:  profile.ID,
 		FileName:   file.Filename,
-		FileURL:    filePath,
+		FileURL:    fileURL,
 		FileSize:   file.Size,
 		FileType:   ext,
 		IsVerified: false,
@@ -95,9 +103,13 @@ func (s *cvService) Upload(userID uint, file *multipart.FileHeader) (*models.CVD
 		// Update existing CV
 		cvDoc.ID = existing.ID
 
-		// Delete old file
+		// Delete old physical file
 		if existing.FileURL != "" {
-			os.Remove(existing.FileURL)
+			// Extract filename from old URL
+			oldFilename := filepath.Base(existing.FileURL)
+			oldFilePath := filepath.Join(s.config.UploadDir, oldFilename)
+			os.Remove(oldFilePath)
+			fmt.Printf("[CV Upload] Deleted old file: %s\n", oldFilePath)
 		}
 
 		err = s.repo.Update(cvDoc)
@@ -109,8 +121,11 @@ func (s *cvService) Upload(userID uint, file *multipart.FileHeader) (*models.CVD
 	if err != nil {
 		// Cleanup uploaded file if database operation fails
 		os.Remove(filePath)
+		fmt.Printf("[CV Upload ERROR] Database save failed, file removed: %v\n", err)
 		return nil, err
 	}
+
+	fmt.Printf("[CV Upload] ✅ CV uploaded successfully! URL: %s\n", fileURL)
 
 	s.profileService.UpdateCompletionStatus(userID)
 	return cvDoc, nil
@@ -142,7 +157,11 @@ func (s *cvService) Delete(userID uint) error {
 
 	// Delete file from storage
 	if cv.FileURL != "" {
-		os.Remove(cv.FileURL)
+		// Extract filename from URL
+		filename := filepath.Base(cv.FileURL)
+		filePath := filepath.Join(s.config.UploadDir, filename)
+		os.Remove(filePath)
+		fmt.Printf("[CV Delete] File removed: %s\n", filePath)
 	}
 
 	err = s.repo.Delete(cv.ID)

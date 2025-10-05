@@ -104,6 +104,10 @@ func main() {
 		})
 	})
 
+	// Static file serving for uploads (CV files)
+	// Map /uploads/cv to the upload directory
+	router.Static("/uploads/cv", cfg.UploadDir)
+
 	// API v1 routes with JWT authentication
 	v1 := router.Group("/api/v1")
 	v1.Use(middleware.JWTAuthMiddleware(cfg.JWTSecret))

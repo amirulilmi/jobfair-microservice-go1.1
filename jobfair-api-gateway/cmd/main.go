@@ -77,12 +77,20 @@ func main() {
 	router.Any("/api/v1/login", proxyHandler(authProxy, "/api/v1/login"))
 	router.Any("/api/v1/refresh", proxyHandler(authProxy, "/api/v1/refresh"))
 	
+	// Get current user (protected)
+	router.Any("/api/v1/me", proxyHandler(authProxy, "/api/v1/me"))
+	
 	// Registration routes (multi-step)
 	router.Any("/api/v1/register/*proxyPath", proxyHandler(authProxy, "/api/v1/register"))
 	router.Any("/api/v1/register", proxyHandler(authProxy, "/api/v1/register"))
 	
 	// Other auth routes
 	router.Any("/api/v1/auth/*proxyPath", proxyHandler(authProxy, "/api/v1/auth"))
+
+	// ==================== STATIC FILES - AUTH SERVICE ====================
+	// Profile photos and company logos
+	router.Any("/uploads/profiles/*filepath", proxyHandler(authProxy, "/uploads/profiles"))
+	router.Any("/uploads/companies/*filepath", proxyHandler(authProxy, "/uploads/companies"))
 
 	// ==================== COMPANY SERVICE ROUTES ====================
 	// Company CRUD routes
@@ -134,6 +142,10 @@ func main() {
 	// Badges routes
 	router.Any("/api/v1/badges/*proxyPath", proxyHandler(profileProxy, "/api/v1/badges"))
 	router.Any("/api/v1/badges", proxyHandler(profileProxy, "/api/v1/badges"))
+
+	// ==================== STATIC FILES - USER PROFILE SERVICE ====================
+	// CV files
+	router.Any("/uploads/cv/*filepath", proxyHandler(profileProxy, "/uploads/cv"))
 
 	// 404 handler
 	router.NoRoute(func(c *gin.Context) {

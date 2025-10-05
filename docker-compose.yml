@@ -185,6 +185,8 @@ services:
       RABBITMQ_URL: amqp://jobfair_user:jobfair_pass@rabbitmq:5672/
       PORT: 8080
       GIN_MODE: debug
+    volumes:
+      - ./jobfair-auth-service/uploads:/root/uploads
     networks:
       - jobfair_network
     depends_on:
@@ -263,10 +265,11 @@ services:
       JWT_SECRET: your-super-secret-jwt-key-for-development
       PORT: 8083
       GIN_MODE: debug
+      UPLOAD_DIR: /root/uploads/cv
     networks:
       - jobfair_network
     volumes:
-      - profile_uploads:/root/uploads
+      - ./jobfair-user-profile-service/uploads:/root/uploads
     depends_on:
       postgres-profile:
         condition: service_healthy
@@ -311,4 +314,3 @@ volumes:
   postgres_job_data:
   postgres_profile_data:
   rabbitmq_data:
-  profile_uploads:

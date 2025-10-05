@@ -58,7 +58,7 @@ func main() {
 		cfg.JWTSecret,
 		eventPublisher, // 🎯 Inject event publisher
 	)
-	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
+	authService := services.NewAuthService(userRepo, profileRepo, companyProfileRepo, cfg.JWTSecret)
 
 	// Initialize handlers
 	registrationHandler := handlers.NewRegistrationHandler(registrationService)
@@ -94,6 +94,9 @@ func main() {
 		})
 	})
 
+	// Static file serving for uploads
+	router.Static("/uploads", "./uploads")
+
 	api := router.Group("/api/v1")
 	{
 		// Registration flow (multi-step) - UNIFIED for both job_seeker and company
@@ -119,6 +122,9 @@ func main() {
 		// Authentication
 		api.POST("/login", authHandler.Login)
 		api.POST("/refresh", authHandler.RefreshToken)
+		
+		// Get current user profile (protected route)
+		api.GET("/me", authMiddleware, authHandler.GetCurrentUser)
 	}
 
 	port := os.Getenv("PORT")
@@ -129,5 +135,6 @@ func main() {
 	log.Printf("🚀 Auth service starting on port %s", port)
 	log.Printf("📊 Health check: http://localhost:%s/health", port)
 	log.Printf("🔑 API endpoint: http://localhost:%s/api/v1", port)
+	log.Printf("📁 Static files: http://localhost:%s/uploads", port)
 	router.Run(":" + port)
 }

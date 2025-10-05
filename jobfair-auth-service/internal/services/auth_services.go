@@ -10,14 +10,23 @@ import (
 )
 
 type AuthService struct {
-	userRepo  *repository.UserRepository
-	jwtSecret string
+	userRepo           *repository.UserRepository
+	jobSeekerRepo      *repository.JobSeekerProfileRepository
+	companyProfileRepo *repository.CompanyBasicProfileRepository
+	jwtSecret          string
 }
 
-func NewAuthService(userRepo *repository.UserRepository, jwtSecret string) *AuthService {
+func NewAuthService(
+	userRepo *repository.UserRepository,
+	jobSeekerRepo *repository.JobSeekerProfileRepository,
+	companyProfileRepo *repository.CompanyBasicProfileRepository,
+	jwtSecret string,
+) *AuthService {
 	return &AuthService{
-		userRepo:  userRepo,
-		jwtSecret: jwtSecret,
+		userRepo:           userRepo,
+		jobSeekerRepo:      jobSeekerRepo,
+		companyProfileRepo: companyProfileRepo,
+		jwtSecret:          jwtSecret,
 	}
 }
 
@@ -91,4 +100,69 @@ func (s *AuthService) GetUserByID(id uint) (*models.User, error) {
 
 func (s *AuthService) GetAllUsers() ([]models.User, error) {
 	return s.userRepo.GetAll()
+}
+
+// GetCurrentUserWithProfile returns complete user data with profile based on user type
+func (s *AuthService) GetCurrentUserWithProfile(userID uint) (map[string]interface{}, error) {
+	// Get user data
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	// Base response
+	response := map[string]interface{}{
+		"id":                  user.ID,
+		"email":               user.Email,
+		"user_type":           user.UserType,
+		"first_name":          user.FirstName,
+		"last_name":           user.LastName,
+		"phone_number":        user.PhoneNumber,
+		"country_code":        user.CountryCode,
+		"country":             user.Country,
+		"profile_photo":       user.ProfilePhoto,
+		"is_email_verified":   user.IsEmailVerified,
+		"is_phone_verified":   user.IsPhoneVerified,
+		"email_verified_at":   user.EmailVerifiedAt,
+		"phone_verified_at":   user.PhoneVerifiedAt,
+		"is_active":           user.IsActive,
+		"is_profile_complete": user.IsProfileComplete,
+		"created_at":          user.CreatedAt,
+		"updated_at":          user.UpdatedAt,
+	}
+
+	// Add profile data based on user type
+	switch user.UserType {
+	case models.UserTypeJobSeeker:
+		profile, err := s.jobSeekerRepo.GetByUserID(userID)
+		if err == nil {
+			response["profile"] = map[string]interface{}{
+				"current_job_title":      profile.CurrentJobTitle,
+				"current_company":        profile.CurrentCompany,
+				"employment_status":      profile.EmploymentStatus,
+				"job_search_status":      profile.JobSearchStatus,
+				"desired_positions":      profile.DesiredPositions,
+				"preferred_locations":    profile.PreferredLocations,
+				"job_types":              profile.JobTypes,
+				"notifications_enabled":  profile.NotificationsEnabled,
+				"location_enabled":       profile.LocationEnabled,
+			}
+		}
+
+	case models.UserTypeCompany:
+		profile, err := s.companyProfileRepo.GetByUserID(userID)
+		if err == nil {
+			response["company_profile"] = map[string]interface{}{
+				"company_name": profile.CompanyName,
+				"industry":     profile.Industry,
+				"contact_name": profile.ContactName,
+				"phone_number": profile.PhoneNumber,
+				"address":      profile.Address,
+				"website":      profile.Website,
+				"logo_url":     profile.LogoURL,
+			}
+		}
+	}
+
+	return response, nil
 }

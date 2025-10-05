@@ -4,10 +4,11 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"time"
+	"path/filepath"
 
 	"jobfair-auth-service/internal/models"
 	"jobfair-auth-service/internal/services"
+	"jobfair-auth-service/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -170,14 +171,16 @@ func (h *RegistrationHandler) SetPermissions(c *gin.Context) {
 func (h *RegistrationHandler) UploadProfilePhoto(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
+	// Get uploaded file
 	file, err := c.FormFile("photo")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.APIResponse{Success: false, Message: "photo file is required"})
 		return
 	}
 
-	if file.Size > 5*1024*1024 {
-		c.JSON(http.StatusBadRequest, models.APIResponse{Success: false, Message: "file size too large (max 5MB)"})
+	// Validate file (max 5MB)
+	if err := utils.ValidateImageFile(file, 5*1024*1024); err != nil {
+		c.JSON(http.StatusBadRequest, models.APIResponse{Success: false, Message: err.Error()})
 		return
 	}
 
@@ -188,22 +191,44 @@ func (h *RegistrationHandler) UploadProfilePhoto(c *gin.Context) {
 		return
 	}
 
-	var photoURL string
+	// Generate filename
+	filename := utils.GenerateFileName(userID, file.Filename)
+	
+	// Determine directory based on user type
+	var relativeDir, relativePath string
 	if user.UserType == models.UserTypeCompany {
-		photoURL = fmt.Sprintf("/uploads/companies/logos/%d_%d.jpg", userID, time.Now().Unix())
+		relativeDir = "uploads/companies/logos"
+		relativePath = filepath.Join(relativeDir, filename)
 	} else {
-		photoURL = fmt.Sprintf("/uploads/profiles/%d_%d.jpg", userID, time.Now().Unix())
+		relativeDir = "uploads/profiles"
+		relativePath = filepath.Join(relativeDir, filename)
 	}
 
+	// Save file to disk
+	fmt.Printf("[DEBUG] Saving file to: %s\n", relativePath)
+	if err := utils.SaveUploadedFile(file, relativePath); err != nil {
+		fmt.Printf("[ERROR] Failed to save file: %v\n", err)
+		c.JSON(http.StatusInternalServerError, models.APIResponse{
+			Success: false,
+			Message: fmt.Sprintf("Failed to save file: %v", err),
+		})
+		return
+	}
+	fmt.Printf("[DEBUG] File saved successfully: %s\n", relativePath)
+
+	// Save path to database (dengan prefix /)
+	photoURL := "/" + filepath.ToSlash(relativePath)
 	data, err := h.registrationService.UploadProfilePhoto(userID, photoURL)
 	if err != nil {
+		// Jika gagal save ke database, hapus file yang sudah diupload
+		utils.DeleteFile(relativePath)
 		c.JSON(http.StatusBadRequest, models.APIResponse{Success: false, Message: err.Error()})
 		return
 	}
 
-	message := "Profile photo uploaded"
+	message := "Profile photo uploaded successfully"
 	if user.UserType == models.UserTypeCompany {
-		message = "Company logo uploaded"
+		message = "Company logo uploaded successfully"
 	}
 
 	c.JSON(http.StatusOK, models.APIResponse{Data: data, Message: message, Success: true})

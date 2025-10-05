@@ -122,3 +122,32 @@ func (h *AuthHandler) GetAllUsers(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, users)
 }
+
+// GetCurrentUser returns the complete profile of the logged-in user
+func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
+	// Get user_id from JWT middleware context
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"error":   "Unauthorized - user_id not found in context",
+		})
+		return
+	}
+
+	// Get complete user data with profile
+	userData, err := h.authService.GetCurrentUserWithProfile(userID.(uint))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "User data retrieved successfully",
+		"data":    userData,
+	})
+}

@@ -4,23 +4,16 @@
 *.dll
 *.so
 *.dylib
-bin/
 *.test
 *.out
 
-# Go workspace file
-go.work
+# Dependencies
+vendor/
 
-# Environment variables
+# Environment
 .env
 .env.local
 .env.*.local
-
-# Uploads
-uploads/
-*.pdf
-*.doc
-*.docx
 
 # IDE
 .idea/
@@ -28,19 +21,22 @@ uploads/
 *.swp
 *.swo
 *~
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Uploaded files (keep folder structure but ignore actual files)
+uploads/**/*
+!uploads/.gitkeep
+!uploads/cv/
+!uploads/cv/.gitkeep
 
 # Logs
 *.log
+logs/
 
-# Temporary files
-tmp/
-temp/
-
-# Air (hot reload)
-tmp/
-
-# Test coverage
-*.coverprofile
-coverage.html
-coverage.out
+# Build
+bin/
+dist/
+build/
