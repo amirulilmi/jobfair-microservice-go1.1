@@ -29,10 +29,10 @@ func main() {
 
 	// Initialize Gin router
 	router := gin.Default()
-	
+
 	// Disable automatic trailing slash redirect to prevent 301 loops
 	router.RedirectTrailingSlash = false
-	
+
 	// Set max multipart memory for file uploads (50MB)
 	router.MaxMultipartMemory = 50 << 20
 
@@ -76,14 +76,14 @@ func main() {
 	// Login & Token routes
 	router.Any("/api/v1/login", proxyHandler(authProxy, "/api/v1/login"))
 	router.Any("/api/v1/refresh", proxyHandler(authProxy, "/api/v1/refresh"))
-	
+
 	// Get current user (protected)
 	router.Any("/api/v1/me", proxyHandler(authProxy, "/api/v1/me"))
-	
+
 	// Registration routes (multi-step)
 	router.Any("/api/v1/register/*proxyPath", proxyHandler(authProxy, "/api/v1/register"))
 	router.Any("/api/v1/register", proxyHandler(authProxy, "/api/v1/register"))
-	
+
 	// Other auth routes
 	router.Any("/api/v1/auth/*proxyPath", proxyHandler(authProxy, "/api/v1/auth"))
 
@@ -96,7 +96,7 @@ func main() {
 	// Company CRUD routes
 	router.Any("/api/v1/companies/*proxyPath", proxyHandler(companyProxy, "/api/v1/companies"))
 	router.Any("/api/v1/companies", proxyHandler(companyProxy, "/api/v1/companies"))
-	
+
 	// My company route
 	router.Any("/api/v1/my-company", proxyHandler(companyProxy, "/api/v1/my-company"))
 
@@ -180,13 +180,13 @@ func proxyHandler(proxy *httputil.ReverseProxy, pathPrefix string) gin.HandlerFu
 	return gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		// Store original path
 		originalPath := r.URL.Path
-		
+
 		// Keep the original path without modification
 		// The target service will handle the full path including prefix
-		
+
 		// Log the proxy
 		log.Printf("🔄 Proxying: %s", originalPath)
-		
+
 		// Serve the request with original path
 		proxy.ServeHTTP(w, r)
 	})

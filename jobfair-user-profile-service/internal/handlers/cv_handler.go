@@ -47,7 +47,9 @@ func (h *CVHandler) Get(c *gin.Context) {
 
 	cv, err := h.service.Get(userID.(uint))
 	if err != nil {
-		c.JSON(http.StatusNotFound, models.ErrorResponse("CV not found", "NOT_FOUND", nil))
+		// If CV not found, return 200 OK with null data (not 404)
+		// This is better for client apps that expect 200 for "no data yet"
+		c.JSON(http.StatusOK, models.SuccessResponse("No CV uploaded yet", nil))
 		return
 	}
 
